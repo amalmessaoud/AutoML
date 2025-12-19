@@ -1,0 +1,11 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.format]
+quote-style = "single"  # or "double" — your preference
+indent-style = "space"
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "UP", "I"]  # common good rules
+ignore = []  # add exceptions later if needed
