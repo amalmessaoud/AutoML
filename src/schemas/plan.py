@@ -1,5 +1,6 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field, validator
-from typing import Dict, List, Literal
 
 
 class PreprocessingStep(BaseModel):
@@ -9,7 +10,7 @@ class PreprocessingStep(BaseModel):
 
     method: str = Field(..., description="Specific method, e.g. 'mean', 'one_hot', 'standard'")
 
-    columns: List[str] = Field(..., description='Columns to apply to')
+    columns: list[str] = Field(..., description='Columns to apply to')
 
     @validator('operation', pre=True)
     def normalize_operation(cls, v):
@@ -26,7 +27,7 @@ class PreprocessingStep(BaseModel):
 
 class ModelToTry(BaseModel):
     name: str = Field(..., description='Name of the model to try')
-    hyperparameters: Dict[str, object] = Field(
+    hyperparameters: dict[str, object] = Field(
         default_factory=dict,
         description='Initial hyperparameters; empty dict means use sklearn defaults',
     )
@@ -38,10 +39,10 @@ class AutoMLPlan(BaseModel):
     primary_metric: Literal[
         'accuracy', 'f1_macro', 'f1_weighted', 'roc_auc', 'balanced_accuracy'
     ] = Field(..., description='Primary metric for model evaluation')
-    preprocessing_steps: List[PreprocessingStep] = Field(
+    preprocessing_steps: list[PreprocessingStep] = Field(
         default_factory=list, description='List of preprocessing steps (can be empty)'
     )
-    models_to_try: List[ModelToTry] = Field(
+    models_to_try: list[ModelToTry] = Field(
         ..., description='List of models to try during training'
     )
     validation_method: Literal['cross_validation'] = Field(
