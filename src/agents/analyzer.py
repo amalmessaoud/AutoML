@@ -1,6 +1,8 @@
-from src.schemas.plan import AutoMLPlan
-from openai import OpenAI
 import json
+
+from openai import OpenAI
+
+from src.schemas.plan import AutoMLPlan
 
 # Groq setup — just change this block when you want to switch back
 client = OpenAI(
@@ -58,6 +60,8 @@ HERE IS THE EXACT STRUCTURE YOU MUST FOLLOW:
 STRICT RULES:
 - Use ONLY the field names shown above
 - task_type must always be "classification"
+- For impute_missing: method 'mean' or 'median' for numeric, 'most_frequent' for categorical
+- If target is imbalanced (from value counts), use primary_metric 'f1_macro' or 'balanced_accuracy', and add 'handle_imbalance' operation with method 'oversample'
 - primary_metric must be one of: accuracy, f1_macro, f1_weighted, roc_auc, balanced_accuracy
 - preprocessing_steps can be empty
 - models_to_try: exactly 1 to 3 models
@@ -102,13 +106,19 @@ Now generate the plan:
 
 
 if __name__ == '__main__':
-    dataset_desc = """
-    Columns: age (numeric), workclass (categorical), education (categorical), 
-    marital-status (categorical), occupation (categorical), hours-per-week (numeric), 
-    income (binary: <=50K or >50K). Some missing values in workclass and occupation.
-    """
+    from src.utils.data_utils import generate_dataset_description
 
-    problem = 'Predict whether a person makes over 50K a year.'
+    # Path to your downloaded CSV
+    csv_path = 'data/wine.csv'  # Make sure this matches your file location
+
+    dataset_desc = generate_dataset_description(csv_path)
+    # problem = "Predict whether a client will subscribe to a term deposit."
+    # problem = "Predict the species of an iris flower (setosa, versicolor, virginica) from its sepal and petal measurements."
+    problem = 'Predict the quality class of wine from its chemical properties.'
+
+    print('=== GENERATED DATASET DESCRIPTION ===\n')
+    print(dataset_desc)
+    print('\n=== END DESCRIPTION ===\n')
 
     try:
         plan = generate_automl_plan(dataset_desc, problem)
