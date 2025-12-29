@@ -1,4 +1,3 @@
-
 import pandas as pd
 from catboost import CatBoostClassifier
 from imblearn.over_sampling import SMOTE
@@ -226,37 +225,104 @@ if __name__ == '__main__':
     #     ),
     # )
 
+    # plan = AutoMLPlan(
+    #     task_type='classification',
+    #     target_column='y',
+    #     primary_metric='f1_macro',
+    #     preprocessing_steps=[
+    #         PreprocessingStep(
+    #             operation='impute_missing',
+    #             method='mean',
+    #             columns=[
+    #                 'age',
+    #                 'balance',
+    #                 'day',
+    #                 'duration',
+    #                 'campaign',
+    #                 'pdays',
+    #                 'previous',
+    #             ],
+    #         ),
+    #         PreprocessingStep(
+    #             operation='encode_categorical',
+    #             method='one_hot',
+    #             columns=[
+    #                 'job',
+    #                 'marital',
+    #                 'education',
+    #                 'default',
+    #                 'housing',
+    #                 'loan',
+    #                 'contact',
+    #                 'month',
+    #                 'poutcome',
+    #             ],
+    #         ),
+    #     ],
+    #     models_to_try=[
+    #         ModelToTry(name='LogisticRegression', hyperparameters={}),
+    #         ModelToTry(name='RandomForestClassifier', hyperparameters={}),
+    #         ModelToTry(name='XGBClassifier', hyperparameters={}),
+    #     ],
+    #     validation_method='cross_validation',
+    #     folds=5,
+    #     random_seed=42,
+    #     reasoning=(
+    #         'Dataset has categorical columns and a potential target column. '
+    #         'We will encode the categorical columns and use a combination of '
+    #         'logistic regression, random forest, and XGBoost for classification.'
+    #     ),
+    # )
+    #     plan = AutoMLPlan(
+    #     task_type="classification",
+    #     target_column="class",
+    #     primary_metric="accuracy",
+    #     preprocessing_steps=[
+    #         PreprocessingStep(
+    #             operation="scale_numeric",
+    #             method="standard",
+    #             columns=["sepal_length", "sepal_width", "petal_length", "petal_width"]
+    #         )
+    #     ],
+    #     models_to_try=[
+    #         ModelToTry(name="KNeighborsClassifier", hyperparameters={"n_neighbors": 5}),
+    #         ModelToTry(name="SVC", hyperparameters={"kernel": "linear"})
+    #     ],
+    #     validation_method="cross_validation",
+    #     folds=5,
+    #     random_seed=42,
+    #     reasoning="Dataset is numeric with no missing values or categoricals. Simple features suggest KNN and SVM as good starters for multi-class."
+    # )
+
     plan = AutoMLPlan(
         task_type='classification',
-        target_column='y',
+        target_column='income',
         primary_metric='f1_macro',
         preprocessing_steps=[
+            PreprocessingStep(
+                operation='encode_categorical',
+                method='one_hot',
+                columns=[
+                    'workclass',
+                    'education',
+                    'marital-status',
+                    'occupation',
+                    'relationship',
+                    'race',
+                    'gender',
+                    'native-country',
+                ],
+            ),
             PreprocessingStep(
                 operation='impute_missing',
                 method='mean',
                 columns=[
                     'age',
-                    'balance',
-                    'day',
-                    'duration',
-                    'campaign',
-                    'pdays',
-                    'previous',
-                ],
-            ),
-            PreprocessingStep(
-                operation='encode_categorical',
-                method='one_hot',
-                columns=[
-                    'job',
-                    'marital',
-                    'education',
-                    'default',
-                    'housing',
-                    'loan',
-                    'contact',
-                    'month',
-                    'poutcome',
+                    'fnlwgt',
+                    'educational-num',
+                    'capital-gain',
+                    'capital-loss',
+                    'hours-per-week',
                 ],
             ),
         ],
@@ -269,13 +335,32 @@ if __name__ == '__main__':
         folds=5,
         random_seed=42,
         reasoning=(
-            'Dataset has categorical columns and a potential target column. '
-            'We will encode the categorical columns and use a combination of '
-            'logistic regression, random forest, and XGBoost for classification.'
+            'Dataset has missing values and categorical columns. '
+            'One-hot encoding and mean imputation are used for preprocessing. '
+            'Simple models are tried first due to the simplicity of the dataset.'
         ),
     )
 
-    csv_path = 'data/bank.csv'
+    plan = AutoMLPlan(
+        task_type='classification',
+        target_column='Quality',
+        primary_metric='accuracy',
+        preprocessing_steps=[],
+        models_to_try=[
+            ModelToTry(name='LogisticRegression', hyperparameters={}),
+            ModelToTry(name='RandomForestClassifier', hyperparameters={}),
+            ModelToTry(name='XGBClassifier', hyperparameters={}),
+        ],
+        validation_method='cross_validation',
+        folds=5,
+        random_seed=42,
+        reasoning=(
+            'Dataset is numeric with no missing values or categorical features. '
+            'Simple baseline models are suitable starting points for multi-class classification.'
+        ),
+    )
+
+    csv_path = 'data/wine.csv'
 
     results = execute_plan(plan, csv_path)
     print(results)

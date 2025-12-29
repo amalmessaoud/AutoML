@@ -110,13 +110,13 @@ if __name__ == '__main__':
     from src.utils.data_utils import generate_dataset_description
 
     # Path to your downloaded CSV
-    csv_path = 'data/bank.csv'  # Make sure this matches your file location
+    csv_path = 'data/wine.csv'  # Make sure this matches your file location
 
     dataset_desc = generate_dataset_description(csv_path)
     # problem = "Predict whether an individual earns more than $50K per yearbased on their demographic and employment information."
-    problem = 'Predict whether a client will subscribe to a term deposit.'
+    # problem = 'Predict whether a client will subscribe to a term deposit.'
     # problem = "Predict the species of an iris flower (setosa, versicolor, virginica) from its sepal and petal measurements."
-    # problem = 'Predict the quality class of wine from its chemical properties.'
+    problem = 'Predict the quality class of wine from its chemical properties.'
 
     print('=== GENERATED DATASET DESCRIPTION ===\n')
     print(dataset_desc)
