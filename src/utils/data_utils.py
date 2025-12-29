@@ -7,7 +7,7 @@ def generate_dataset_description(csv_path: str) -> str:
     """
     Load a CSV and generate a detailed, LLM-friendly description.
     """
-    df = pd.read_csv(csv_path)
+    df = pd.read_csv(csv_path, sep=';')
     df = df.replace('?', pd.NA)
 
     # Basic info

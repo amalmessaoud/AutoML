@@ -5,7 +5,11 @@ from pydantic import BaseModel, Field, model_validator
 
 class PreprocessingStep(BaseModel):
     operation: str = Field(..., description='Operation name (will be normalized)')
-    method: str = Field(..., description='Method for the operation')
+    method: str | None = Field(
+        default=None,
+        description='Method for the operation (optional for some ops)',
+    )
+
     columns: list[str] = Field(..., description='Columns to apply to')
 
     @model_validator(mode='after')

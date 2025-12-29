@@ -9,6 +9,8 @@ anyio==4.12.0
     #   -r requirements.txt
     #   httpx
     #   openai
+catboost==1.2.8
+    # via -r requirements.txt
 certifi==2025.11.12
     # via
     #   -r requirements.txt
@@ -19,10 +21,26 @@ colorama==0.4.6
     #   -r requirements.txt
     #   pytest
     #   tqdm
+contourpy==1.3.3
+    # via
+    #   -r requirements.txt
+    #   matplotlib
+cycler==0.12.1
+    # via
+    #   -r requirements.txt
+    #   matplotlib
 distro==1.9.0
     # via
     #   -r requirements.txt
     #   openai
+fonttools==4.61.1
+    # via
+    #   -r requirements.txt
+    #   matplotlib
+graphviz==0.21
+    # via
+    #   -r requirements.txt
+    #   catboost
 h11==0.16.0
     # via
     #   -r requirements.txt
@@ -41,6 +59,8 @@ idna==3.11
     #   -r requirements.txt
     #   anyio
     #   httpx
+imbalanced-learn==0.14.1
+    # via -r requirements.txt
 iniconfig==2.3.0
     # via
     #   -r requirements.txt
@@ -52,13 +72,34 @@ jiter==0.12.0
 joblib==1.5.3
     # via
     #   -r requirements.txt
+    #   imbalanced-learn
     #   scikit-learn
+kiwisolver==1.4.9
+    # via
+    #   -r requirements.txt
+    #   matplotlib
+lightgbm==4.6.0
+    # via -r requirements.txt
+matplotlib==3.10.8
+    # via
+    #   -r requirements.txt
+    #   catboost
+narwhals==2.14.0
+    # via
+    #   -r requirements.txt
+    #   plotly
 numpy==2.3.5
     # via
     #   -r requirements.txt
+    #   catboost
+    #   contourpy
+    #   imbalanced-learn
+    #   lightgbm
+    #   matplotlib
     #   pandas
     #   scikit-learn
     #   scipy
+    #   xgboost
 ollama==0.6.1
     # via -r requirements.txt
 openai==2.14.0
@@ -66,9 +107,21 @@ openai==2.14.0
 packaging==25.0
     # via
     #   -r requirements.txt
+    #   matplotlib
+    #   plotly
     #   pytest
 pandas==2.3.3
-    # via -r requirements.txt
+    # via
+    #   -r requirements.txt
+    #   catboost
+pillow==12.0.0
+    # via
+    #   -r requirements.txt
+    #   matplotlib
+plotly==6.5.0
+    # via
+    #   -r requirements.txt
+    #   catboost
 pluggy==1.6.0
     # via
     #   -r requirements.txt
@@ -86,11 +139,16 @@ pygments==2.19.2
     # via
     #   -r requirements.txt
     #   pytest
+pyparsing==3.3.1
+    # via
+    #   -r requirements.txt
+    #   matplotlib
 pytest==9.0.2
     # via -r requirements.txt
 python-dateutil==2.9.0.post0
     # via
     #   -r requirements.txt
+    #   matplotlib
     #   pandas
 pytz==2025.2
     # via
@@ -99,15 +157,27 @@ pytz==2025.2
 ruff==0.14.10
     # via -r requirements.txt
 scikit-learn==1.8.0
-    # via -r requirements.txt
+    # via
+    #   -r requirements.txt
+    #   imbalanced-learn
+    #   sklearn-compat
 scipy==1.16.3
     # via
     #   -r requirements.txt
+    #   catboost
+    #   imbalanced-learn
+    #   lightgbm
     #   scikit-learn
+    #   xgboost
 six==1.17.0
     # via
     #   -r requirements.txt
+    #   catboost
     #   python-dateutil
+sklearn-compat==0.1.5
+    # via
+    #   -r requirements.txt
+    #   imbalanced-learn
 sniffio==1.3.1
     # via
     #   -r requirements.txt
@@ -115,6 +185,7 @@ sniffio==1.3.1
 threadpoolctl==3.6.0
     # via
     #   -r requirements.txt
+    #   imbalanced-learn
     #   scikit-learn
 tqdm==4.67.1
     # via
@@ -136,3 +207,5 @@ tzdata==2025.3
     # via
     #   -r requirements.txt
     #   pandas
+xgboost==3.1.2
+    # via -r requirements.txt
