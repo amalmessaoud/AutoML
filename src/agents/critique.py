@@ -6,7 +6,7 @@ from src.schemas.plan import AutoMLPlan, ModelToTry
 
 # Groq setup — just change this block when you want to switch back
 client = OpenAI(
-    api_key='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',  # ← paste your key
+    api_key='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',  # ← paste your key
     base_url='https://api.groq.com/openai/v1',
 )
 
@@ -14,7 +14,7 @@ client = OpenAI(
 model = 'llama-3.1-8b-instant'  # or "llama-3.1-8b-instant" if you want speed
 
 
-def evaluate_results(plan: AutoMLPlan, results: dict, problem: str) -> dict:
+def evaluate_results(plan: AutoMLPlan, results: dict, problem: str, logs: list[str] = None) -> dict:
     """
     Critique the execution results and decide if the problem is solved.
 
@@ -27,6 +27,8 @@ def evaluate_results(plan: AutoMLPlan, results: dict, problem: str) -> dict:
     - dict with 'solved': bool, 'critique': str, 'suggestion': str, 'best_model': str, 'best_score': float
     """
     # Find best model
+    if logs is not None:
+        logs.append('Starting Critique Agent...')
     valid_results = {k: v for k, v in results.items() if 'error' not in v}
     if not valid_results:
         best_model = None
@@ -56,6 +58,7 @@ Critique Guidelines:
 - Is the best score good? (e.g., >0.85 excellent, >0.75 good, <0.75 poor for f1_macro/accuracy)
 - Does it solve the problem? (consider data size, imbalance, etc.)
 - If not, suggest improvements (e.g., different models, add imbalance handling)
+- For f1_macro on imbalanced data: >0.75 excellent, >0.65 good, <0.65 poor
 
 Output exactly this JSON:
 {{
@@ -73,6 +76,8 @@ Output exactly this JSON:
     )
 
     critique = json.loads(response.choices[0].message.content)
+    if logs is not None:
+        logs.append('Critique finished evaluation.')
 
     return {
         'solved': critique['decision'] == 'SOLVED',

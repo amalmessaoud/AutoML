@@ -66,12 +66,16 @@ METRIC_MAP = {
 }
 
 
-def execute_plan(plan: AutoMLPlan, csv_path: str) -> dict[str, dict[str, float]]:
+def execute_plan(
+    plan: AutoMLPlan, csv_path: str, logs: list[str] = None
+) -> dict[str, dict[str, float]]:
     """
     Execute the AutoMLPlan on the CSV and return CV metrics for each model.
     """
     # Load data
-    df = pd.read_csv(csv_path)
+    if logs is not None:
+        logs.append('Starting Implementation Agent...')
+    df = pd.read_csv(csv_path,sep=None, engine="python")
     X = df.drop(columns=[plan.target_column])
     y = df[plan.target_column]
 
@@ -81,8 +85,12 @@ def execute_plan(plan: AutoMLPlan, csv_path: str) -> dict[str, dict[str, float]]
 
     # Build preprocessing transformers from plan
     transformers = []
+    
+    has_imbalance_step = any(step.operation == 'handle_imbalance' for step in plan.preprocessing_steps)
 
     for step in plan.preprocessing_steps:
+        if step.operation == 'handle_imbalance':
+            continue  # Skip — handled separately
         if step.operation == 'impute_missing':
             strategy = step.method
             transformer = SimpleImputer(strategy=strategy)
@@ -111,9 +119,6 @@ def execute_plan(plan: AutoMLPlan, csv_path: str) -> dict[str, dict[str, float]]
         elif step.operation == 'drop_columns':
             transformers.append(('drop', 'drop', step.columns))
 
-        elif step.operation == 'handle_imbalance':
-            # SMOTE must be at the end and uses imblearn Pipeline
-            transformers.append(('smote', SMOTE(random_state=plan.random_seed), step.columns))
 
     # Build preprocessing pipeline (expand this)
     preprocessor = ColumnTransformer(transformers=transformers, remainder='passthrough')
@@ -126,12 +131,21 @@ def execute_plan(plan: AutoMLPlan, csv_path: str) -> dict[str, dict[str, float]]
     for model_info in plan.models_to_try:
         try:
             model = MODEL_MAP[model_info.name](**model_info.hyperparameters)
+            if logs is not None:
+                logs.append(f'Running {model_info.name}...')
 
-            # Use imblearn Pipeline if SMOTE is used
-            if any(step.operation == 'handle_imbalance' for step in plan.preprocessing_steps):
-                pipeline = ImbPipeline([('preprocessor', preprocessor), ('classifier', model)])
+            if has_imbalance_step:
+                # Use imblearn Pipeline and add SMOTE at the end of preprocessing
+                pipeline = ImbPipeline([
+                    ('preprocessor', preprocessor),
+                    ('smote', SMOTE(random_state=plan.random_seed)),
+                    ('classifier', model)
+                ])
             else:
-                pipeline = Pipeline([('preprocessor', preprocessor), ('classifier', model)])
+                pipeline = Pipeline([
+                    ('preprocessor', preprocessor),
+                    ('classifier', model)
+                ])
 
             scores = cross_val_score(
                 pipeline, X, y_encoded, cv=cv, scoring=scorer, n_jobs=-1, error_score='raise'
@@ -145,6 +159,8 @@ def execute_plan(plan: AutoMLPlan, csv_path: str) -> dict[str, dict[str, float]]
         except Exception as e:
             results[model_info.name] = {'error': str(e)}
 
+    if logs is not None:
+        logs.append('Implementation finished execution.')
     return results
 
 

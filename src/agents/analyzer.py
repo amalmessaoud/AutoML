@@ -6,7 +6,7 @@ from src.schemas.plan import AutoMLPlan
 
 # Groq setup — just change this block when you want to switch back
 client = OpenAI(
-    api_key='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',  # ← paste your key
+    api_key='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',  # ← paste your key
     base_url='https://api.groq.com/openai/v1',
 )
 
@@ -17,8 +17,10 @@ model = 'llama-3.1-8b-instant'  # or "llama-3.1-8b-instant" if you want speed
 
 
 def generate_automl_plan(
-    dataset_description: str, problem_description: str, model: str = model
+    dataset_description: str, problem_description: str, model: str = model, logs: list[str] = None
 ) -> AutoMLPlan:
+    if logs is not None:
+        logs.append('Starting Analyzer Agent...')
     example_json = {
         'task_type': 'classification',
         'target_column': 'species',
@@ -46,7 +48,7 @@ def generate_automl_plan(
 You are an expert machine learning engineer specializing in tabular classification.
 Your task is to create a complete, executable AutoML plan in strict JSON format.
 
-Dataset description:
+Dataset description (PAY CLOSE ATTENTION TO TARGET VALUE COUNTS FOR IMBALANCE):
 {dataset_description}
 
 Problem: {problem_description}
@@ -57,12 +59,18 @@ HERE IS THE EXACT STRUCTURE YOU MUST FOLLOW:
 
 {example_str}
 
-STRICT RULES:
+CRITICAL METRIC SELECTION RULE — FOLLOW THIS FIRST:
+1. Look at the target column value counts in the dataset description.
+2. If the classes are imbalanced (one class >70% or <30% of data), you MUST use primary_metric "f1_macro" or "balanced_accuracy".
+3. If classes are balanced, use "accuracy".
+4. Never use "accuracy" on imbalanced data — it is misleading.
+
+Other STRICT RULES:
 - Use ONLY the field names shown above
 - task_type must always be "classification"
 - For encode_categorical, method must be "one_hot" or "ordinal" (never "most_frequent" or "mean")
 - For impute_missing: method 'mean' or 'median' for numeric, 'most_frequent' for categorical
-- If target is imbalanced (from value counts), use primary_metric 'f1_macro' or 'balanced_accuracy', and add 'handle_imbalance' operation with method 'oversample'
+- If target is imbalanced, ALSO add "handle_imbalance" with method "oversample"
 - primary_metric must be one of: accuracy, f1_macro, f1_weighted, roc_auc, balanced_accuracy
 - preprocessing_steps can be empty
 - models_to_try: exactly 1 to 3 models
@@ -98,6 +106,8 @@ Now generate the plan:
         plan = AutoMLPlan.model_validate_json(raw_output)
         print('\n🎉 SUCCESS! Valid AutoML Plan generated:')
         print(plan.model_dump_json(indent=2))
+        if logs is not None:
+            logs.append('Analyzer finished generating plan.')
         return plan
     except Exception as e:
         print('\n❌ Validation failed:', e)
