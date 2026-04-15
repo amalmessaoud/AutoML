@@ -1,6 +1,8 @@
 # src/app.py
 import gradio as gr
 from src.orchestrator import run_automl_pipeline
+from dotenv import load_dotenv
+load_dotenv()
 
 def automl_interface(csv_file, problem_text):
     if not csv_file or not problem_text.strip():

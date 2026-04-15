@@ -4,6 +4,8 @@ from src.agents.analyzer import generate_automl_plan
 from src.agents.implementation import execute_plan
 from src.agents.critique import evaluate_results
 from src.schemas.plan import AutoMLPlan
+from dotenv import load_dotenv
+load_dotenv()
 
 
 def run_automl_pipeline(csv_path: str, problem: str, max_iterations: int = 3) -> Dict:
