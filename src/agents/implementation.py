@@ -120,7 +120,7 @@ def execute_plan(
                 ])
 
             scores = cross_val_score(
-                pipeline, X, y_encoded, cv=cv, scoring=scorer, n_jobs=-1, error_score="raise"
+                pipeline, X, y_encoded, cv=cv, scoring=scorer, n_jobs=1, error_score="raise"
             )
             results[model_info.name] = {
                 "mean_score": float(scores.mean()),
@@ -128,6 +128,8 @@ def execute_plan(
                 "individual_scores": [float(s) for s in scores],
             }
         except Exception as e:
+            if logs is not None:
+                logs.append(f"ImplementationAgent: ERROR in {model_info.name} — {str(e)}")
             results[model_info.name] = {"error": str(e)}
 
     if logs is not None:

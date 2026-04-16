@@ -3,19 +3,19 @@ import json
 
 from src.agents.base_agent import BaseAgent
 from src.config.llm_config import LLMConfig
-from src.schemas.plan import AutoMLPlan
+from src.schemas.plan import AutoMLPlan, AttemptSummary
 
 
 class AnalyzerAgent(BaseAgent):
-    """
-    LLM-driven planning agent.
-    Receives dataset description + problem statement, outputs a validated AutoMLPlan.
-    """
-
     def __init__(self, config: LLMConfig, logs: list[str]) -> None:
         super().__init__(config, logs)
 
-    def run(self, dataset_description: str, problem_description: str) -> AutoMLPlan:
+    def run(
+        self,
+        dataset_description: str,
+        problem_description: str,
+        previous_attempts: list[AttemptSummary] = [],
+    ) -> AutoMLPlan:
         self._log("AnalyzerAgent: starting plan generation.")
 
         example_json = {
@@ -39,6 +39,25 @@ class AnalyzerAgent(BaseAgent):
             "reasoning": "Dataset is numeric with no missing values or categoricals.",
         }
 
+        # Build memory block if we have previous attempts
+        memory_block = ""
+        if previous_attempts:
+            lines = ["PREVIOUS ATTEMPTS — LEARN FROM THESE FAILURES:"]
+            for a in previous_attempts:
+                lines.append(
+                    f"  Iteration {a.iteration}: tried {a.models_tried}, "
+                    f"best {a.metric}={a.best_score:.4f}, "
+                    f"reason not solved: {a.failure_reason or 'score below threshold'}"
+                )
+                if a.execution_errors:
+                    lines.append(f"  EXECUTION ERRORS (you MUST fix these): {a.execution_errors}")
+            lines.append(
+                "If there were execution errors, fix the root cause in preprocessing — "
+                "e.g. if 'could not convert string to float', you MUST add encode_categorical for those columns."
+            )
+            lines.append("Choose DIFFERENT models and/or preprocessing than above.")
+            memory_block = "\n".join(lines)
+
         prompt = f"""
 You are an expert machine learning engineer specializing in tabular classification.
 Your task is to create a complete, executable AutoML plan in strict JSON format.
@@ -47,6 +66,8 @@ Dataset description (PAY CLOSE ATTENTION TO TARGET VALUE COUNTS FOR IMBALANCE):
 {dataset_description}
 
 Problem: {problem_description}
+
+{memory_block}
 
 You MUST output ONLY a valid JSON object that exactly matches the AutoMLPlan schema.
 
@@ -57,7 +78,7 @@ CRITICAL METRIC SELECTION RULE — FOLLOW THIS FIRST:
 1. Look at the target column value counts in the dataset description.
 2. If the classes are imbalanced (one class >70% or <30% of data), you MUST use primary_metric "f1_macro" or "balanced_accuracy".
 3. If classes are balanced, use "accuracy".
-4. Never use "accuracy" on imbalanced data — it is misleading.
+4. Never use "accuracy" on imbalanced data.
 
 STRICT RULES:
 - task_type must always be "classification"
@@ -70,12 +91,13 @@ STRICT RULES:
 - Allowed model names: LogisticRegression, RandomForestClassifier, XGBClassifier, LGBMClassifier, CatBoostClassifier, SVC, KNeighborsClassifier
 - hyperparameters: dict, empty means use defaults
 - Output ONLY the JSON. No extra text, no markdown.
+- BEFORE choosing preprocessing: scan the dataset description for columns listed as dtype=object or string examples. Every such column MUST have an encode_categorical step.
+- If ALL models returned errors mentioning 'could not convert string to float', it means you forgot to encode a categorical column — add encode_categorical for ALL object columns.
 
 Now generate the plan:
 """
 
         client = self._build_client()
-
         self._log(f"AnalyzerAgent: calling {self.config.provider}/{self.config.model}.")
 
         stream = client.chat.completions.create(
@@ -100,12 +122,12 @@ Now generate the plan:
             raise
 
 
-# --- Convenience function for backward compatibility with orchestrator ---
 def generate_automl_plan(
     dataset_description: str,
     problem_description: str,
     config: LLMConfig = None,
     logs: list[str] = None,
+    previous_attempts: list[AttemptSummary] = [],
 ) -> AutoMLPlan:
     from src.config.llm_config import GROQ_LLAMA_8B
     if config is None:
@@ -116,4 +138,5 @@ def generate_automl_plan(
     return agent.run(
         dataset_description=dataset_description,
         problem_description=problem_description,
+        previous_attempts=previous_attempts,
     )

@@ -8,7 +8,7 @@ from src.agents.analyzer import AnalyzerAgent
 from src.agents.critique import CritiqueAgent
 from src.agents.implementation import execute_plan
 from src.config.llm_config import GROQ_LLAMA_8B, LLMConfig
-from src.schemas.plan import AutoMLPlan
+from src.schemas.plan import AutoMLPlan, AttemptSummary
 from src.utils.data_utils import generate_dataset_description
 
 
@@ -22,7 +22,7 @@ def run_automl_pipeline(
         config = GROQ_LLAMA_8B
 
     logs: list[str] = []
-    current_problem = problem
+    previous_attempts: list[AttemptSummary] = []
     final_plan: Optional[AutoMLPlan] = None
     final_results: Optional[dict] = None
     final_evaluation: Optional[dict] = None
@@ -34,9 +34,11 @@ def run_automl_pipeline(
         logs.append(f"==== ITERATION {iteration} ====")
 
         desc = generate_dataset_description(csv_path)
+
         plan = analyzer.run(
             dataset_description=desc,
-            problem_description=current_problem,
+            problem_description=problem,
+            previous_attempts=previous_attempts,
         )
         final_plan = plan
 
@@ -46,18 +48,32 @@ def run_automl_pipeline(
         evaluation = critique.run(
             plan=plan,
             results=results,
-            problem=current_problem,
+            problem=problem,
             X=X,
             y=y_encoded,
         )
         final_evaluation = evaluation
 
+        errors = [
+            f"{model}: {info['error']}"
+            for model, info in results.items()
+            if "error" in info
+        ]
+
+        previous_attempts.append(AttemptSummary(
+            iteration=iteration,
+            models_tried=[m.name for m in plan.models_to_try],
+            best_score=evaluation["best_score"],
+            metric=plan.primary_metric,
+            failure_reason=evaluation["suggestion"] if not evaluation["solved"] else None,
+            execution_errors=errors,
+        ))
+
         if evaluation["solved"]:
             logs.append("Pipeline: problem solved — stopping.")
             break
 
-        logs.append("Pipeline: not solved — passing feedback to next iteration.")
-        current_problem = f"{problem}\nPrevious attempt feedback: {evaluation['suggestion']}"
+        logs.append("Pipeline: not solved — memory updated for next iteration.")
 
     else:
         logs.append("Pipeline: max iterations reached.")

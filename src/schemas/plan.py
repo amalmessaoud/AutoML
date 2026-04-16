@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -73,3 +73,11 @@ class AutoMLPlan(BaseModel):
         if not 1 <= len(self.models_to_try) <= 3:
             raise ValueError('Must suggest between 1 and 3 models')
         return self
+
+class AttemptSummary(BaseModel):
+    iteration: int
+    models_tried: list[str]
+    best_score: float
+    metric: str
+    failure_reason: Optional[str] = None
+    execution_errors: list[str] = []
