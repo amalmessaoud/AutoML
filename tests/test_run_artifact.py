@@ -1,5 +1,5 @@
 # tests/test_run_artifact.py
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from src.schemas.plan import AutoMLPlan, ModelToTry, PreprocessingStep
 from src.schemas.run_artifact import AgentCall, IterationRecord, RunArtifact
@@ -7,33 +7,31 @@ from src.schemas.run_artifact import AgentCall, IterationRecord, RunArtifact
 
 def _make_fake_plan() -> AutoMLPlan:
     return AutoMLPlan(
-        task_type="classification",
-        target_column="species",
-        primary_metric="accuracy",
+        task_type='classification',
+        target_column='species',
+        primary_metric='accuracy',
         preprocessing_steps=[
             PreprocessingStep(
-                operation="scale_numeric",
-                method="standard",
-                columns=["sepal_length", "sepal_width"],
+                operation='scale_numeric',
+                method='standard',
+                columns=['sepal_length', 'sepal_width'],
             )
         ],
-        models_to_try=[
-            ModelToTry(name="KNeighborsClassifier", hyperparameters={"n_neighbors": 5})
-        ],
-        validation_method="cross_validation",
+        models_to_try=[ModelToTry(name='KNeighborsClassifier', hyperparameters={'n_neighbors': 5})],
+        validation_method='cross_validation',
         folds=5,
         random_seed=42,
-        reasoning="Test plan for unit test.",
+        reasoning='Test plan for unit test.',
     )
 
 
 def _make_fake_agent_call(name: str) -> AgentCall:
     return AgentCall(
         agent_name=name,
-        input_summary="test input",
-        output_summary="test output",
+        input_summary='test input',
+        output_summary='test output',
         duration_seconds=1.23,
-        timestamp=datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+        timestamp=datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC),
     )
 
 
@@ -44,30 +42,30 @@ def _make_fake_run_artifact() -> RunArtifact:
         iteration_number=1,
         plan=plan,
         results={
-            "KNeighborsClassifier": {
-                "mean_score": 0.973,
-                "std_score": 0.025,
-                "individual_scores": [1.0, 0.96, 0.93, 1.0, 0.96],
+            'KNeighborsClassifier': {
+                'mean_score': 0.973,
+                'std_score': 0.025,
+                'individual_scores': [1.0, 0.96, 0.93, 1.0, 0.96],
             }
         },
-        evaluation="Good performance on balanced dataset.",
+        evaluation='Good performance on balanced dataset.',
         solved=True,
         agent_calls=[
-            _make_fake_agent_call("AnalyzerAgent"),
-            _make_fake_agent_call("ImplementationAgent"),
-            _make_fake_agent_call("CritiqueAgent"),
+            _make_fake_agent_call('AnalyzerAgent'),
+            _make_fake_agent_call('ImplementationAgent'),
+            _make_fake_agent_call('CritiqueAgent'),
         ],
     )
 
     return RunArtifact(
-        dataset_path="data/iris.csv",
-        problem="Predict iris species.",
+        dataset_path='data/iris.csv',
+        problem='Predict iris species.',
         llm_config={
-            "provider": "groq",
-            "model": "llama-3.1-8b-instant",
-            "base_url": "https://api.groq.com/openai/v1",
-            "temperature": 0.3,
-            "api_key_env_var": "GROQ_API_KEY",
+            'provider': 'groq',
+            'model': 'llama-3.1-8b-instant',
+            'base_url': 'https://api.groq.com/openai/v1',
+            'temperature': 0.3,
+            'api_key_env_var': 'GROQ_API_KEY',
         },
         random_seed=42,
         iterations=[iteration],
@@ -79,7 +77,7 @@ def _make_fake_run_artifact() -> RunArtifact:
 class TestRunArtifactSchema:
     def test_construct_full_artifact(self):
         artifact = _make_fake_run_artifact()
-        assert artifact.schema_version == "1.0"
+        assert artifact.schema_version == '1.0'
         assert len(artifact.iterations) == 1
         assert len(artifact.iterations[0].agent_calls) == 3
 
@@ -90,13 +88,13 @@ class TestRunArtifactSchema:
 
     def test_schema_version_hardcoded(self):
         artifact = _make_fake_run_artifact()
-        assert artifact.schema_version == "1.0"
+        assert artifact.schema_version == '1.0'
 
     def test_no_api_key_in_llm_config(self):
         artifact = _make_fake_run_artifact()
         for value in artifact.llm_config.values():
-            assert not str(value).startswith("gsk_"), "Real API key found in RunArtifact!"
-            assert not str(value).startswith("AIza"), "Real API key found in RunArtifact!"
+            assert not str(value).startswith('gsk_'), 'Real API key found in RunArtifact!'
+            assert not str(value).startswith('AIza'), 'Real API key found in RunArtifact!'
 
     def test_json_round_trip(self):
         """Serialize to JSON, deserialize back — must be structurally identical."""
@@ -109,10 +107,10 @@ class TestRunArtifactSchema:
         assert restored.solved == original.solved
         assert restored.schema_version == original.schema_version
         assert restored.iterations[0].iteration_number == 1
-        assert restored.iterations[0].solved == True
+        assert restored.iterations[0].solved
         assert (
-            restored.iterations[0].results["KNeighborsClassifier"]["mean_score"]
-            == original.iterations[0].results["KNeighborsClassifier"]["mean_score"]
+            restored.iterations[0].results['KNeighborsClassifier']['mean_score']
+            == original.iterations[0].results['KNeighborsClassifier']['mean_score']
         )
 
     def test_round_trip_byte_identical(self):

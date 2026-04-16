@@ -1,15 +1,14 @@
 # src/orchestrator.py
 from dotenv import load_dotenv
-load_dotenv()
-
-from typing import Optional
 
 from src.agents.analyzer import AnalyzerAgent
 from src.agents.critique import CritiqueAgent
 from src.agents.implementation import execute_plan
 from src.config.llm_config import GROQ_LLAMA_8B, LLMConfig
-from src.schemas.plan import AutoMLPlan, AttemptSummary
+from src.schemas.plan import AttemptSummary, AutoMLPlan
 from src.utils.data_utils import generate_dataset_description
+
+load_dotenv()
 
 
 def run_automl_pipeline(
@@ -23,15 +22,15 @@ def run_automl_pipeline(
 
     logs: list[str] = []
     previous_attempts: list[AttemptSummary] = []
-    final_plan: Optional[AutoMLPlan] = None
-    final_results: Optional[dict] = None
-    final_evaluation: Optional[dict] = None
+    final_plan: AutoMLPlan | None = None
+    final_results: dict | None = None
+    final_evaluation: dict | None = None
 
     analyzer = AnalyzerAgent(config=config, logs=logs)
     critique = CritiqueAgent(config=config, logs=logs)
 
     for iteration in range(1, max_iterations + 1):
-        logs.append(f"==== ITERATION {iteration} ====")
+        logs.append(f'==== ITERATION {iteration} ====')
 
         desc = generate_dataset_description(csv_path)
 
@@ -54,34 +53,32 @@ def run_automl_pipeline(
         )
         final_evaluation = evaluation
 
-        errors = [
-            f"{model}: {info['error']}"
-            for model, info in results.items()
-            if "error" in info
-        ]
+        errors = [f'{model}: {info["error"]}' for model, info in results.items() if 'error' in info]
 
-        previous_attempts.append(AttemptSummary(
-            iteration=iteration,
-            models_tried=[m.name for m in plan.models_to_try],
-            best_score=evaluation["best_score"],
-            metric=plan.primary_metric,
-            failure_reason=evaluation["suggestion"] if not evaluation["solved"] else None,
-            execution_errors=errors,
-        ))
+        previous_attempts.append(
+            AttemptSummary(
+                iteration=iteration,
+                models_tried=[m.name for m in plan.models_to_try],
+                best_score=evaluation['best_score'],
+                metric=plan.primary_metric,
+                failure_reason=evaluation['suggestion'] if not evaluation['solved'] else None,
+                execution_errors=errors,
+            )
+        )
 
-        if evaluation["solved"]:
-            logs.append("Pipeline: problem solved — stopping.")
+        if evaluation['solved']:
+            logs.append('Pipeline: problem solved — stopping.')
             break
 
-        logs.append("Pipeline: not solved — memory updated for next iteration.")
+        logs.append('Pipeline: not solved — memory updated for next iteration.')
 
     else:
-        logs.append("Pipeline: max iterations reached.")
+        logs.append('Pipeline: max iterations reached.')
 
     return {
-        "final_plan": final_plan,
-        "final_results": final_results,
-        "final_evaluation": final_evaluation,
-        "logs": logs,
-        "iterations": iteration,
+        'final_plan': final_plan,
+        'final_results': final_results,
+        'final_evaluation': final_evaluation,
+        'logs': logs,
+        'iterations': iteration,
     }

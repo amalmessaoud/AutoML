@@ -22,23 +22,23 @@ class CritiqueAgent(BaseAgent):
         X: pd.DataFrame,
         y: np.ndarray,
     ) -> dict:
-        self._log("CritiqueAgent: starting evaluation.")
+        self._log('CritiqueAgent: starting evaluation.')
 
-        valid_results = {k: v for k, v in results.items() if "error" not in v}
+        valid_results = {k: v for k, v in results.items() if 'error' not in v}
         if not valid_results:
             best_model = None
             best_score = 0.0
         else:
-            best_model = max(valid_results, key=lambda k: valid_results[k]["mean_score"])
-            best_score = valid_results[best_model]["mean_score"]
+            best_model = max(valid_results, key=lambda k: valid_results[k]['mean_score'])
+            best_score = valid_results[best_model]['mean_score']
 
         # --- Deterministic solved — never from LLM ---
         dummy_score = compute_dummy_score(X, y, plan.primary_metric, plan.random_seed)
         solved = is_solved(best_score, plan.primary_metric, dummy_score)
 
         self._log(
-            f"CritiqueAgent: best={best_model} score={best_score:.4f} "
-            f"dummy={dummy_score:.4f} ({'SOLVED' if solved else 'NOT_SOLVED'})"
+            f'CritiqueAgent: best={best_model} score={best_score:.4f} '
+            f'dummy={dummy_score:.4f} ({"SOLVED" if solved else "NOT_SOLVED"})'
         )
 
         prompt = f"""
@@ -67,25 +67,25 @@ Output exactly this JSON:
 """
 
         client = self._build_client()
-        self._log(f"CritiqueAgent: calling {self.config.provider}/{self.config.model}.")
+        self._log(f'CritiqueAgent: calling {self.config.provider}/{self.config.model}.')
 
         response = client.chat.completions.create(
             model=self.config.model,
-            messages=[{"role": "user", "content": prompt}],
+            messages=[{'role': 'user', 'content': prompt}],
             temperature=self.config.temperature,
-            response_format={"type": "json_object"},
+            response_format={'type': 'json_object'},
         )
 
         critique = json.loads(response.choices[0].message.content)
-        self._log("CritiqueAgent: evaluation complete.")
+        self._log('CritiqueAgent: evaluation complete.')
 
         return {
-            "solved": solved,
-            "critique": critique["reason"],
-            "suggestion": critique.get("suggestion", ""),
-            "best_model": best_model,
-            "best_score": best_score,
-            "dummy_score": dummy_score,
+            'solved': solved,
+            'critique': critique['reason'],
+            'suggestion': critique.get('suggestion', ''),
+            'best_model': best_model,
+            'best_score': best_score,
+            'dummy_score': dummy_score,
         }
 
 
@@ -99,6 +99,7 @@ def evaluate_results(
     logs: list[str] = None,
 ) -> dict:
     from src.config.llm_config import GROQ_LLAMA_8B
+
     if config is None:
         config = GROQ_LLAMA_8B
     if logs is None:

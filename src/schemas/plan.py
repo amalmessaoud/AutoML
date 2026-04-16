@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -74,10 +74,11 @@ class AutoMLPlan(BaseModel):
             raise ValueError('Must suggest between 1 and 3 models')
         return self
 
+
 class AttemptSummary(BaseModel):
     iteration: int
     models_tried: list[str]
     best_score: float
     metric: str
-    failure_reason: Optional[str] = None
+    failure_reason: str | None = None
     execution_errors: list[str] = []

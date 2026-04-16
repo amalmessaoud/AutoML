@@ -3,7 +3,7 @@ import json
 
 from src.agents.base_agent import BaseAgent
 from src.config.llm_config import LLMConfig
-from src.schemas.plan import AutoMLPlan, AttemptSummary
+from src.schemas.plan import AttemptSummary, AutoMLPlan
 
 
 class AnalyzerAgent(BaseAgent):
@@ -14,49 +14,49 @@ class AnalyzerAgent(BaseAgent):
         self,
         dataset_description: str,
         problem_description: str,
-        previous_attempts: list[AttemptSummary] = [],
+        previous_attempts: list[AttemptSummary] = None,
     ) -> AutoMLPlan:
-        self._log("AnalyzerAgent: starting plan generation.")
+        self._log('AnalyzerAgent: starting plan generation.')
 
         example_json = {
-            "task_type": "classification",
-            "target_column": "species",
-            "primary_metric": "accuracy",
-            "preprocessing_steps": [
+            'task_type': 'classification',
+            'target_column': 'species',
+            'primary_metric': 'accuracy',
+            'preprocessing_steps': [
                 {
-                    "operation": "scale_numeric",
-                    "method": "standard",
-                    "columns": ["sepal_length", "sepal_width", "petal_length", "petal_width"],
+                    'operation': 'scale_numeric',
+                    'method': 'standard',
+                    'columns': ['sepal_length', 'sepal_width', 'petal_length', 'petal_width'],
                 }
             ],
-            "models_to_try": [
-                {"name": "KNeighborsClassifier", "hyperparameters": {"n_neighbors": 5}},
-                {"name": "SVC", "hyperparameters": {"kernel": "linear"}},
+            'models_to_try': [
+                {'name': 'KNeighborsClassifier', 'hyperparameters': {'n_neighbors': 5}},
+                {'name': 'SVC', 'hyperparameters': {'kernel': 'linear'}},
             ],
-            "validation_method": "cross_validation",
-            "folds": 5,
-            "random_seed": 42,
-            "reasoning": "Dataset is numeric with no missing values or categoricals.",
+            'validation_method': 'cross_validation',
+            'folds': 5,
+            'random_seed': 42,
+            'reasoning': 'Dataset is numeric with no missing values or categoricals.',
         }
 
         # Build memory block if we have previous attempts
-        memory_block = ""
+        memory_block = ''
         if previous_attempts:
-            lines = ["PREVIOUS ATTEMPTS — LEARN FROM THESE FAILURES:"]
+            lines = ['PREVIOUS ATTEMPTS — LEARN FROM THESE FAILURES:']
             for a in previous_attempts:
                 lines.append(
-                    f"  Iteration {a.iteration}: tried {a.models_tried}, "
-                    f"best {a.metric}={a.best_score:.4f}, "
-                    f"reason not solved: {a.failure_reason or 'score below threshold'}"
+                    f'  Iteration {a.iteration}: tried {a.models_tried}, '
+                    f'best {a.metric}={a.best_score:.4f}, '
+                    f'reason not solved: {a.failure_reason or "score below threshold"}'
                 )
                 if a.execution_errors:
-                    lines.append(f"  EXECUTION ERRORS (you MUST fix these): {a.execution_errors}")
+                    lines.append(f'  EXECUTION ERRORS (you MUST fix these): {a.execution_errors}')
             lines.append(
-                "If there were execution errors, fix the root cause in preprocessing — "
+                'If there were execution errors, fix the root cause in preprocessing — '
                 "e.g. if 'could not convert string to float', you MUST add encode_categorical for those columns."
             )
-            lines.append("Choose DIFFERENT models and/or preprocessing than above.")
-            memory_block = "\n".join(lines)
+            lines.append('Choose DIFFERENT models and/or preprocessing than above.')
+            memory_block = '\n'.join(lines)
 
         prompt = f"""
 You are an expert machine learning engineer specializing in tabular classification.
@@ -98,27 +98,27 @@ Now generate the plan:
 """
 
         client = self._build_client()
-        self._log(f"AnalyzerAgent: calling {self.config.provider}/{self.config.model}.")
+        self._log(f'AnalyzerAgent: calling {self.config.provider}/{self.config.model}.')
 
         stream = client.chat.completions.create(
             model=self.config.model,
-            messages=[{"role": "user", "content": prompt}],
+            messages=[{'role': 'user', 'content': prompt}],
             stream=True,
             temperature=self.config.temperature,
-            response_format={"type": "json_object"},
+            response_format={'type': 'json_object'},
         )
 
-        raw_output = ""
+        raw_output = ''
         for chunk in stream:
             if chunk.choices[0].delta.content:
                 raw_output += chunk.choices[0].delta.content
 
         try:
             plan = AutoMLPlan.model_validate_json(raw_output)
-            self._log("AnalyzerAgent: plan validated successfully.")
+            self._log('AnalyzerAgent: plan validated successfully.')
             return plan
         except Exception as e:
-            self._log(f"AnalyzerAgent: validation failed — {e}")
+            self._log(f'AnalyzerAgent: validation failed — {e}')
             raise
 
 
@@ -127,9 +127,10 @@ def generate_automl_plan(
     problem_description: str,
     config: LLMConfig = None,
     logs: list[str] = None,
-    previous_attempts: list[AttemptSummary] = [],
+    previous_attempts: list[AttemptSummary] = None,
 ) -> AutoMLPlan:
     from src.config.llm_config import GROQ_LLAMA_8B
+
     if config is None:
         config = GROQ_LLAMA_8B
     if logs is None:
