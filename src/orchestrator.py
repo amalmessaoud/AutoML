@@ -1,4 +1,5 @@
 # src/orchestrator.py
+
 import pandas as pd
 from dotenv import load_dotenv
 
@@ -6,9 +7,11 @@ from src.agents.analyzer import AnalyzerAgent
 from src.agents.critique import CritiqueAgent
 from src.agents.dataset_quality_agent import DatasetQualityAgent
 from src.agents.implementation import execute_plan
+from src.agents.plan_validator_agent import PlanValidatorAgent
 from src.config.llm_config import GROQ_LLAMA_8B, LLMConfig
 from src.schemas.plan import AttemptSummary, AutoMLPlan
 from src.schemas.quality_report import DatasetQualityReport
+from src.schemas.validation_result import ValidationResult
 from src.utils.data_utils import generate_dataset_description
 
 load_dotenv()
@@ -29,11 +32,12 @@ def run_automl_pipeline(
     final_results: dict | None = None
     final_evaluation: dict | None = None
     quality_report: DatasetQualityReport | None = None
+    validation_result: ValidationResult | None = None
 
     analyzer = AnalyzerAgent(config=config, logs=logs)
     critique = CritiqueAgent(config=config, logs=logs)
+    validator = PlanValidatorAgent(logs=logs)
 
-    # Load dataframe once — used for quality agent and passed to critique
     df = pd.read_csv(csv_path, sep=None, engine='python')
 
     for iteration in range(1, max_iterations + 1):
@@ -41,21 +45,44 @@ def run_automl_pipeline(
 
         desc = generate_dataset_description(csv_path)
 
-        # Quality agent — use confirmed target after first iteration
-        if iteration == 1:
-            guessed_target = df.columns[-1]
-        else:
-            guessed_target = final_plan.target_column
-
+        # Quality agent
+        guessed_target = df.columns[-1] if iteration == 1 else final_plan.target_column
         quality_agent = DatasetQualityAgent(logs=logs)
         quality_report = quality_agent.run(df, target_column=guessed_target)
 
+        # Analyzer — may retry once if validator fails
         plan = analyzer.run(
             dataset_description=desc,
             problem_description=problem,
             previous_attempts=previous_attempts,
             quality_report=quality_report,
         )
+
+        # Validator — retry once if issues found
+        validation_result = validator.run(plan, quality_report)
+        if not validation_result.passed:
+            logs.append(
+                f'PlanValidatorAgent: issues found — requesting correction. '
+                f'Issues: {validation_result.issues}'
+            )
+            correction_problem = (
+                f'{problem}\n'
+                f'CORRECTION REQUIRED — your previous plan had these validation issues '
+                f'that MUST be fixed:\n'
+                + '\n'.join(f'- {issue}' for issue in validation_result.issues)
+            )
+            plan = analyzer.run(
+                dataset_description=desc,
+                problem_description=correction_problem,
+                previous_attempts=previous_attempts,
+                quality_report=quality_report,
+            )
+            validation_result = validator.run(plan, quality_report)
+            logs.append(
+                f'PlanValidatorAgent: after correction — '
+                f'{"PASSED" if validation_result.passed else "STILL FAILING"}.'
+            )
+
         final_plan = plan
 
         results, X, y_encoded = execute_plan(plan, csv_path, logs=logs)
@@ -97,6 +124,7 @@ def run_automl_pipeline(
         'final_results': final_results,
         'final_evaluation': final_evaluation,
         'quality_report': quality_report,
+        'validation_result': validation_result,
         'logs': logs,
         'iterations': iteration,
     }
