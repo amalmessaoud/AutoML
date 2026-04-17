@@ -5,11 +5,17 @@ from src.agents.base_agent import BaseAgent
 from src.config.llm_config import LLMConfig
 from src.schemas.plan import AttemptSummary, AutoMLPlan
 from src.schemas.quality_report import DatasetQualityReport
+from src.utils.cost_reporter import CostTracker
 
 
 class AnalyzerAgent(BaseAgent):
-    def __init__(self, config: LLMConfig, logs: list[str]) -> None:
-        super().__init__(config, logs)
+    def __init__(
+        self,
+        config: LLMConfig,
+        logs: list[str],
+        cost_tracker: 'CostTracker | None' = None,
+    ) -> None:
+        super().__init__(config, logs, cost_tracker)
 
     def run(
         self,
@@ -130,10 +136,15 @@ Now generate the plan:
             response_format={'type': 'json_object'},
         )
 
+        # replace the streaming + validation block in AnalyzerAgent.run() with this:
+
         raw_output = ''
         for chunk in stream:
             if chunk.choices[0].delta.content:
                 raw_output += chunk.choices[0].delta.content
+
+        # Record cost
+        self._record_call('AnalyzerAgent', prompt, raw_output)
 
         try:
             plan = AutoMLPlan.model_validate_json(raw_output)

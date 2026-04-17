@@ -8,11 +8,17 @@ from src.agents.base_agent import BaseAgent
 from src.config.constants import compute_dummy_score, is_solved
 from src.config.llm_config import LLMConfig
 from src.schemas.plan import AutoMLPlan
+from src.utils.cost_reporter import CostTracker
 
 
 class CritiqueAgent(BaseAgent):
-    def __init__(self, config: LLMConfig, logs: list[str]) -> None:
-        super().__init__(config, logs)
+    def __init__(
+        self,
+        config: LLMConfig,
+        logs: list[str],
+        cost_tracker: 'CostTracker | None' = None,
+    ) -> None:
+        super().__init__(config, logs, cost_tracker)
 
     def run(
         self,
@@ -75,8 +81,9 @@ Output exactly this JSON:
             temperature=self.config.temperature,
             response_format={'type': 'json_object'},
         )
-
-        critique = json.loads(response.choices[0].message.content)
+        completion_text = response.choices[0].message.content
+        self._record_call('CritiqueAgent', prompt, completion_text)
+        critique = json.loads(completion_text)
         self._log('CritiqueAgent: evaluation complete.')
 
         return {

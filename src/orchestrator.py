@@ -12,6 +12,7 @@ from src.config.llm_config import GROQ_LLAMA_8B, LLMConfig
 from src.schemas.plan import AttemptSummary, AutoMLPlan
 from src.schemas.quality_report import DatasetQualityReport
 from src.schemas.validation_result import ValidationResult
+from src.utils.cost_reporter import CostTracker
 from src.utils.data_utils import generate_dataset_description
 
 load_dotenv()
@@ -33,9 +34,10 @@ def run_automl_pipeline(
     final_evaluation: dict | None = None
     quality_report: DatasetQualityReport | None = None
     validation_result: ValidationResult | None = None
+    cost_tracker = CostTracker()
 
-    analyzer = AnalyzerAgent(config=config, logs=logs)
-    critique = CritiqueAgent(config=config, logs=logs)
+    analyzer = AnalyzerAgent(config=config, logs=logs, cost_tracker=cost_tracker)
+    critique = CritiqueAgent(config=config, logs=logs, cost_tracker=cost_tracker)
     validator = PlanValidatorAgent(logs=logs)
 
     df = pd.read_csv(csv_path, sep=None, engine='python')
@@ -45,12 +47,10 @@ def run_automl_pipeline(
 
         desc = generate_dataset_description(csv_path)
 
-        # Quality agent
         guessed_target = df.columns[-1] if iteration == 1 else final_plan.target_column
         quality_agent = DatasetQualityAgent(logs=logs)
         quality_report = quality_agent.run(df, target_column=guessed_target)
 
-        # Analyzer — may retry once if validator fails
         plan = analyzer.run(
             dataset_description=desc,
             problem_description=problem,
@@ -58,13 +58,13 @@ def run_automl_pipeline(
             quality_report=quality_report,
         )
 
-        # Validator — retry once if issues found
         validation_result = validator.run(plan, quality_report)
         if not validation_result.passed:
             logs.append(
                 f'PlanValidatorAgent: issues found — requesting correction. '
                 f'Issues: {validation_result.issues}'
             )
+            cost_tracker.record_validator_replan()
             correction_problem = (
                 f'{problem}\n'
                 f'CORRECTION REQUIRED — your previous plan had these validation issues '
@@ -88,6 +88,9 @@ def run_automl_pipeline(
         results, X, y_encoded = execute_plan(plan, csv_path, logs=logs)
         final_results = results
 
+        errors = [f'{model}: {info["error"]}' for model, info in results.items() if 'error' in info]
+        cost_tracker.record_execution_errors(len(errors))
+
         evaluation = critique.run(
             plan=plan,
             results=results,
@@ -96,8 +99,6 @@ def run_automl_pipeline(
             y=y_encoded,
         )
         final_evaluation = evaluation
-
-        errors = [f'{model}: {info["error"]}' for model, info in results.items() if 'error' in info]
 
         previous_attempts.append(
             AttemptSummary(
@@ -119,12 +120,17 @@ def run_automl_pipeline(
     else:
         logs.append('Pipeline: max iterations reached.')
 
+    cost_report = cost_tracker.build_report(iterations=iteration)
+    logs.append('==== COST REPORT ====')
+    logs.append(cost_report.summary())
+
     return {
         'final_plan': final_plan,
         'final_results': final_results,
         'final_evaluation': final_evaluation,
         'quality_report': quality_report,
         'validation_result': validation_result,
+        'cost_report': cost_report,
         'logs': logs,
         'iterations': iteration,
     }
