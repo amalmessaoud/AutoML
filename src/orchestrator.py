@@ -13,6 +13,7 @@ from src.utils.data_utils import generate_dataset_description
 
 load_dotenv()
 
+
 def run_automl_pipeline(
     csv_path: str,
     problem: str,
