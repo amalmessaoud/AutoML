@@ -24,7 +24,7 @@ def _make_quality_report(
         class_distribution={'0': 0.8, '1': 0.2} if not imbalance_flag else {'0': 0.95, '1': 0.05},
         imbalance_flag=imbalance_flag,
         duplicate_row_rate=0.0,
-        potential_leakage_columns=potential_leakage_columns,
+        potential_leakage_columns=potential_leakage_columns,  # now always a list
         warnings=[],
     )
 
@@ -148,6 +148,35 @@ class TestRule5LeakageColumns:
             plan, _make_quality_report(potential_leakage_columns=['suspicious_col'])
         )
         assert not any('Rule5' in i for i in result.issues)
+
+
+class TestRule6TargetInPreprocessing:
+    def test_target_in_preprocessing_is_issue(self):
+        plan = _make_plan(
+            preprocessing_steps=[
+                PreprocessingStep(
+                    operation='encode_categorical',
+                    method='one_hot',
+                    columns=['target'],  # target column — wrong
+                )
+            ]
+        )
+        result = _make_agent().run(plan, _make_quality_report())
+        assert not result.passed
+        assert any('Rule6' in i for i in result.issues)
+
+    def test_target_not_in_preprocessing_passes(self):
+        plan = _make_plan(
+            preprocessing_steps=[
+                PreprocessingStep(
+                    operation='scale_numeric',
+                    method='standard',
+                    columns=['f1'],  # feature column — correct
+                )
+            ]
+        )
+        result = _make_agent().run(plan, _make_quality_report())
+        assert not any('Rule6' in i for i in result.issues)
 
 
 class TestCleanPlan:

@@ -29,7 +29,7 @@ from sklearn.preprocessing import (
 from sklearn.svm import SVC
 from xgboost import XGBClassifier
 
-from src.schemas.plan import AutoMLPlan
+from src.schemas.plan import AutoMLPlan, PreprocessingStep
 
 MODEL_MAP = {
     'LogisticRegression': lambda **kw: LogisticRegression(max_iter=1000, **kw),
@@ -50,19 +50,41 @@ METRIC_MAP = {
 }
 
 
+def _strip_target_from_steps(
+    steps: list[PreprocessingStep],
+    target_column: str,
+    logs: list[str] | None,
+) -> list[PreprocessingStep]:
+    """
+    Safety net: remove target column from any preprocessing step columns.
+    This should have been caught by Rule 6 of the validator, but LLM is stochastic.
+    """
+    clean = []
+    for step in steps:
+        clean_cols = [c for c in step.columns if c != target_column]
+        if len(clean_cols) != len(step.columns):
+            if logs:
+                logs.append(
+                    f'ImplementationAgent: WARNING — removed target column '
+                    f"'{target_column}' from step '{step.operation}'. "
+                    f'Plan error not caught by validator.'
+                )
+        if clean_cols:
+            clean.append(
+                PreprocessingStep(
+                    operation=step.operation,
+                    method=step.method,
+                    columns=clean_cols,
+                )
+            )
+    return clean
+
+
 def execute_plan(
     plan: AutoMLPlan,
     csv_path: str,
-    logs: list[str] = None,
+    logs: list[str] | None = None,
 ) -> tuple[dict[str, dict], pd.DataFrame, np.ndarray]:
-    """
-    Execute the AutoMLPlan on the CSV.
-
-    Returns:
-        results: dict of model -> scores
-        X: feature DataFrame (for critique agent)
-        y_encoded: encoded target array (for critique agent)
-    """
     if logs is not None:
         logs.append('ImplementationAgent: starting execution.')
 
@@ -73,10 +95,13 @@ def execute_plan(
     le = LabelEncoder()
     y_encoded = le.fit_transform(y)
 
-    transformers = []
-    has_imbalance_step = any(s.operation == 'handle_imbalance' for s in plan.preprocessing_steps)
+    # Safety: strip target column from any preprocessing steps
+    plan_steps = _strip_target_from_steps(plan.preprocessing_steps, plan.target_column, logs)
 
-    for step in plan.preprocessing_steps:
+    transformers = []
+    has_imbalance_step = any(s.operation == 'handle_imbalance' for s in plan_steps)
+
+    for step in plan_steps:
         if step.operation == 'handle_imbalance':
             continue
         elif step.operation == 'impute_missing':

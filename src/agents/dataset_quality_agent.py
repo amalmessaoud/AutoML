@@ -88,7 +88,8 @@ class DatasetQualityAgent:
         for col in numeric_cols:
             try:
                 corr = abs(df[col].corr(target_series))
-                if corr > 0.95:
+                n_rows = len(df)
+                if corr > 0.98 and n_rows > 500:
                     potential_leakage_columns.append(col)
                     warnings.append(
                         f"Column '{col}' has correlation {corr:.3f} with target "

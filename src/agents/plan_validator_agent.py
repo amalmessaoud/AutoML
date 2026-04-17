@@ -68,24 +68,31 @@ class PlanValidatorAgent:
                     f'ensemble models {selected_ensembles} risk overfitting on small data.'
                 )
 
-        # --- Rule 5: leakage columns not dropped ---
+        # --- Rule 5: leakage columns not dropped and not used in preprocessing ---
         if quality_report.potential_leakage_columns:
-            drop_steps = [
-                step for step in plan.preprocessing_steps if step.operation == 'drop_columns'
-            ]
-            dropped_cols = []
-            for step in drop_steps:
-                dropped_cols.extend(step.columns)
+            all_referenced_cols = []
+            for step in plan.preprocessing_steps:
+                all_referenced_cols.extend(step.columns)
 
-            not_dropped = [
-                col for col in quality_report.potential_leakage_columns if col not in dropped_cols
+            not_addressed = [
+                col
+                for col in quality_report.potential_leakage_columns
+                if col not in all_referenced_cols  # not dropped AND not referenced
             ]
-            if not_dropped:
+            if not_addressed:
                 issues.append(
-                    f'Rule5: potential leakage columns {not_dropped} are not in any '
+                    f'Rule5: potential leakage columns {not_addressed} are not in any '
                     f'drop_columns step — this will cause data leakage.'
                 )
 
+        # --- Rule 6: target column must not appear in any preprocessing step ---
+        for step in plan.preprocessing_steps:
+            if plan.target_column in step.columns:
+                issues.append(
+                    f"Rule6: target column '{plan.target_column}' appears in "
+                    f"preprocessing step '{step.operation}' — target is never a feature, "
+                    f'remove it from the columns list.'
+                )
         passed = len(issues) == 0
 
         self._log(

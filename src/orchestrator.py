@@ -138,8 +138,8 @@ def run_automl_pipeline(
 
 if __name__ == '__main__':
     output = run_automl_pipeline(
-        'data/iris.csv',
-        'Predict the species of an iris flower.',
+        'data/adult.csv',
+        'Predict the income range of individuals.',
     )
     print('\n'.join(output['logs']))
     print(f'\nSolved: {output["final_evaluation"]["solved"]}')
