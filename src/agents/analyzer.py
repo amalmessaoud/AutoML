@@ -4,6 +4,7 @@ import json
 from src.agents.base_agent import BaseAgent
 from src.config.llm_config import LLMConfig
 from src.schemas.plan import AttemptSummary, AutoMLPlan
+from src.schemas.quality_report import DatasetQualityReport
 
 
 class AnalyzerAgent(BaseAgent):
@@ -15,6 +16,7 @@ class AnalyzerAgent(BaseAgent):
         dataset_description: str,
         problem_description: str,
         previous_attempts: list[AttemptSummary] = None,
+        quality_report: DatasetQualityReport | None = None,
     ) -> AutoMLPlan:
         self._log('AnalyzerAgent: starting plan generation.')
 
@@ -39,7 +41,7 @@ class AnalyzerAgent(BaseAgent):
             'reasoning': 'Dataset is numeric with no missing values or categoricals.',
         }
 
-        # Build memory block if we have previous attempts
+        # --- Memory block ---
         memory_block = ''
         if previous_attempts:
             lines = ['PREVIOUS ATTEMPTS — LEARN FROM THESE FAILURES:']
@@ -53,10 +55,24 @@ class AnalyzerAgent(BaseAgent):
                     lines.append(f'  EXECUTION ERRORS (you MUST fix these): {a.execution_errors}')
             lines.append(
                 'If there were execution errors, fix the root cause in preprocessing — '
-                "e.g. if 'could not convert string to float', you MUST add encode_categorical for those columns."
+                "e.g. if 'could not convert string to float', you MUST add "
+                'encode_categorical for those columns.'
             )
             lines.append('Choose DIFFERENT models and/or preprocessing than above.')
             memory_block = '\n'.join(lines)
+
+        # --- Quality block ---
+        quality_block = ''
+        if quality_report is not None:
+            quality_block = (
+                f'DATASET QUALITY REPORT:\n'
+                f'  Rows: {quality_report.n_rows}, Cols: {quality_report.n_cols}\n'
+                f'  Imbalanced: {quality_report.imbalance_flag}\n'
+                f'  Duplicate rate: {quality_report.duplicate_row_rate:.2%}\n'
+                f'  Warnings:\n'
+                + '\n'.join(f'    - {w}' for w in quality_report.warnings)
+                + '\nEnsure your plan addresses ALL warnings above.'
+            )
 
         prompt = f"""
 You are an expert machine learning engineer specializing in tabular classification.
@@ -69,6 +85,8 @@ Problem: {problem_description}
 
 {memory_block}
 
+{quality_block}
+
 You MUST output ONLY a valid JSON object that exactly matches the AutoMLPlan schema.
 
 HERE IS THE EXACT STRUCTURE YOU MUST FOLLOW:
@@ -76,7 +94,8 @@ HERE IS THE EXACT STRUCTURE YOU MUST FOLLOW:
 
 CRITICAL METRIC SELECTION RULE — FOLLOW THIS FIRST:
 1. Look at the target column value counts in the dataset description.
-2. If the classes are imbalanced (one class >70% or <30% of data), you MUST use primary_metric "f1_macro" or "balanced_accuracy".
+2. If the classes are imbalanced (one class >70% or <30% of data), you MUST use
+   primary_metric "f1_macro" or "balanced_accuracy".
 3. If classes are balanced, use "accuracy".
 4. Never use "accuracy" on imbalanced data.
 
@@ -88,11 +107,14 @@ STRICT RULES:
 - primary_metric must be one of: accuracy, f1_macro, f1_weighted, roc_auc, balanced_accuracy
 - preprocessing_steps can be empty list
 - models_to_try: exactly 1 to 3 models
-- Allowed model names: LogisticRegression, RandomForestClassifier, XGBClassifier, LGBMClassifier, CatBoostClassifier, SVC, KNeighborsClassifier
+- Allowed model names: LogisticRegression, RandomForestClassifier, XGBClassifier,
+  LGBMClassifier, CatBoostClassifier, SVC, KNeighborsClassifier
 - hyperparameters: dict, empty means use defaults
+- BEFORE choosing preprocessing: scan the dataset description for columns listed as
+  dtype=object or with string examples. Every such column MUST have an encode_categorical step.
+- If ALL models returned errors mentioning 'could not convert string to float', it means
+  you forgot to encode a categorical column — add encode_categorical for ALL object columns.
 - Output ONLY the JSON. No extra text, no markdown.
-- BEFORE choosing preprocessing: scan the dataset description for columns listed as dtype=object or string examples. Every such column MUST have an encode_categorical step.
-- If ALL models returned errors mentioning 'could not convert string to float', it means you forgot to encode a categorical column — add encode_categorical for ALL object columns.
 
 Now generate the plan:
 """
@@ -128,6 +150,7 @@ def generate_automl_plan(
     config: LLMConfig = None,
     logs: list[str] = None,
     previous_attempts: list[AttemptSummary] = None,
+    quality_report: DatasetQualityReport = None,
 ) -> AutoMLPlan:
     from src.config.llm_config import GROQ_LLAMA_8B
 
@@ -140,4 +163,5 @@ def generate_automl_plan(
         dataset_description=dataset_description,
         problem_description=problem_description,
         previous_attempts=previous_attempts,
+        quality_report=quality_report,
     )

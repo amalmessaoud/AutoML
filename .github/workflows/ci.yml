@@ -20,4 +20,4 @@ jobs:
       - name: Format with Ruff
         run: ruff format . --check # Enforces formatting
       - name: Run tests
-        run: pytest # If you add tests
+        run: PYTHONPATH=. python -m pytest
