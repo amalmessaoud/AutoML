@@ -1,14 +1,25 @@
 # src/orchestrator.py
 
+import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import FunctionTransformer
 
 from src.agents.analyzer import AnalyzerAgent
 from src.agents.critique import CritiqueAgent
 from src.agents.dataset_quality_agent import DatasetQualityAgent
-from src.agents.implementation import execute_plan
+from src.agents.explainability_agent import ExplainabilityAgent
+from src.agents.implementation import (
+    MODEL_MAP,
+    _build_transformer_specs,
+    _strip_target_from_steps,
+    execute_plan,
+)
 from src.agents.plan_validator_agent import PlanValidatorAgent
 from src.config.llm_config import GROQ_LLAMA_8B, LLMConfig
+from src.schemas.explainability import ExplainabilityReport
 from src.schemas.plan import AttemptSummary, AutoMLPlan
 from src.schemas.quality_report import DatasetQualityReport
 from src.schemas.validation_result import ValidationResult
@@ -18,11 +29,68 @@ from src.utils.data_utils import generate_dataset_description
 load_dotenv()
 
 
+def _fit_best_model(
+    final_plan: AutoMLPlan,
+    csv_path: str,
+    best_model_name: str,
+    logs: list[str],
+):
+    """
+    Fit the best model on the full dataset (no CV) and return
+    (fitted_model, X_transformed, y_encoded, feature_names).
+    Used exclusively by ExplainabilityAgent.
+    """
+    from sklearn.preprocessing import LabelEncoder
+
+    df = pd.read_csv(csv_path, sep=None, engine='python')
+    X = df.drop(columns=[final_plan.target_column])
+    y = df[final_plan.target_column]
+
+    le = LabelEncoder()
+    y_encoded = le.fit_transform(y)
+
+    plan_steps = _strip_target_from_steps(
+        final_plan.preprocessing_steps, final_plan.target_column, logs
+    )
+
+    transformers = _build_transformer_specs(plan_steps, X)
+    if transformers:
+        preprocessor = ColumnTransformer(transformers=transformers, remainder='passthrough')
+    else:
+        preprocessor = FunctionTransformer()
+
+    # Find the matching model spec from the plan
+    model_spec = next(m for m in final_plan.models_to_try if m.name == best_model_name)
+    model = MODEL_MAP[best_model_name](**model_spec.hyperparameters)
+
+    pipeline = Pipeline([
+        ('preprocessor', preprocessor),
+        ('classifier', model),
+    ])
+    pipeline.fit(X, y_encoded)
+
+    fitted_model = pipeline.named_steps['classifier']
+
+    # Recover feature names after preprocessing
+    try:
+        feature_names = list(
+            pipeline.named_steps['preprocessor'].get_feature_names_out()
+        )
+    except Exception:
+        # Fallback: use original column names if transformer can't produce names
+        feature_names = list(X.columns)
+
+    X_transformed = pipeline.named_steps['preprocessor'].transform(X)
+
+    return fitted_model, X_transformed, y_encoded, feature_names
+
+
 def run_automl_pipeline(
     csv_path: str,
     problem: str,
     max_iterations: int = 3,
     config: LLMConfig = None,
+    use_explainability: bool = True,
 ) -> dict:
     if config is None:
         config = GROQ_LLAMA_8B
@@ -34,6 +102,7 @@ def run_automl_pipeline(
     final_evaluation: dict | None = None
     quality_report: DatasetQualityReport | None = None
     validation_result: ValidationResult | None = None
+    explainability_report: ExplainabilityReport | None = None
     cost_tracker = CostTracker()
 
     analyzer = AnalyzerAgent(config=config, logs=logs, cost_tracker=cost_tracker)
@@ -88,7 +157,11 @@ def run_automl_pipeline(
         results, X, y_encoded = execute_plan(plan, csv_path, logs=logs)
         final_results = results
 
-        errors = [f'{model}: {info["error"]}' for model, info in results.items() if 'error' in info]
+        errors = [
+            f'{model}: {info["error"]}'
+            for model, info in results.items()
+            if 'error' in info
+        ]
         cost_tracker.record_execution_errors(len(errors))
 
         evaluation = critique.run(
@@ -120,6 +193,41 @@ def run_automl_pipeline(
     else:
         logs.append('Pipeline: max iterations reached.')
 
+    # --- Explainability: run on best model after loop ends ---
+    if use_explainability and final_plan is not None and final_evaluation is not None:
+        best_model_name = final_evaluation.get('best_model')
+        # Only explain if the best model actually succeeded (no error key)
+        if (
+            best_model_name
+            and best_model_name in final_results
+            and 'error' not in final_results[best_model_name]
+        ):
+            logs.append(f'ExplainabilityAgent: fitting {best_model_name} on full dataset.')
+            try:
+                fitted_model, X_transformed, y_enc, feature_names = _fit_best_model(
+                    final_plan, csv_path, best_model_name, logs
+                )
+                explain_agent = ExplainabilityAgent(
+                    config=config,
+                    logs=logs,
+                    generate_summary=True,
+                )
+                explainability_report = explain_agent.run(
+                    model=fitted_model,
+                    X=X_transformed,
+                    y=y_enc,
+                    feature_names=feature_names,
+                    random_state=final_plan.random_seed,
+                )
+                logs.append('ExplainabilityAgent: report generated successfully.')
+            except Exception as e:
+                logs.append(f'ExplainabilityAgent: failed — {e}')
+        else:
+            logs.append(
+                f'ExplainabilityAgent: skipped — best model '
+                f'"{best_model_name}" had execution errors.'
+            )
+
     cost_report = cost_tracker.build_report(iterations=iteration)
     logs.append('==== COST REPORT ====')
     logs.append(cost_report.summary())
@@ -130,6 +238,7 @@ def run_automl_pipeline(
         'final_evaluation': final_evaluation,
         'quality_report': quality_report,
         'validation_result': validation_result,
+        'explainability_report': explainability_report,
         'cost_report': cost_report,
         'logs': logs,
         'iterations': iteration,
@@ -144,5 +253,12 @@ if __name__ == '__main__':
     print('\n'.join(output['logs']))
     print(f'\nSolved: {output["final_evaluation"]["solved"]}')
     print(
-        f'Best: {output["final_evaluation"]["best_model"]} — {output["final_evaluation"]["best_score"]:.4f}'
+        f'Best: {output["final_evaluation"]["best_model"]} — '
+        f'{output["final_evaluation"]["best_score"]:.4f}'
     )
+    if output['explainability_report']:
+        r = output['explainability_report']
+        print(f'\nExplainability ({r.method}):')
+        for f in r.top_features:
+            print(f'  {f.rank}. {f.feature_name}: {f.importance_score:.4f}')
+        print(f'\nSummary: {r.decision_summary}')
