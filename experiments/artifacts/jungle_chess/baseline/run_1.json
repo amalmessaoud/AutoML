@@ -1,0 +1,85 @@
+{
+  "run_id": "43895c25-2a29-47d2-8772-7ea37bf7eb14",
+  "dataset_path": "D:\\Projects\\Personal\\AutoML\\data\\raw\\jungle_chess.csv",
+  "problem": "Predict the outcome of a Jungle Chess game position.",
+  "schema_version": "1.0",
+  "llm_config": {
+    "provider": "groq",
+    "model": "llama-3.3-70b-versatile",
+    "base_url": "https://api.groq.com/openai/v1",
+    "temperature": 0.3,
+    "api_key_env_var": "GROQ_API_KEY"
+  },
+  "random_seed": 42,
+  "iterations": [
+    {
+      "iteration_number": 1,
+      "plan": {
+        "task_type": "classification",
+        "target_column": "class",
+        "primary_metric": "f1_macro",
+        "preprocessing_steps": [
+          {
+            "operation": "handle_imbalance",
+            "method": null,
+            "columns": []
+          },
+          {
+            "operation": "scale_numeric",
+            "method": null,
+            "columns": []
+          }
+        ],
+        "models_to_try": [
+          {
+            "name": "RandomForestClassifier",
+            "hyperparameters": {}
+          },
+          {
+            "name": "GradientBoostingClassifier",
+            "hyperparameters": {}
+          },
+          {
+            "name": "XGBClassifier",
+            "hyperparameters": {}
+          }
+        ],
+        "validation_method": "cross_validation",
+        "folds": 5,
+        "random_seed": 42,
+        "reasoning": "converted from BaselinePlan"
+      },
+      "results": {
+        "RandomForestClassifier": {
+          "error": "Unknown scale method: None"
+        },
+        "GradientBoostingClassifier": {
+          "error": "Unknown scale method: None"
+        },
+        "XGBClassifier": {
+          "error": "Unknown scale method: None"
+        }
+      },
+      "evaluation": "execution_failed",
+      "solved": false,
+      "agent_calls": [
+        {
+          "agent_name": "BaselineAnalyzerAgent",
+          "input_summary": "dataset=jungle_chess, iter=1",
+          "output_summary": "parse_success=True, models=['RandomForestClassifier', 'GradientBoostingClassifier', 'XGBClassifier']",
+          "duration_seconds": 2.49,
+          "timestamp": "2026-04-25T07:55:56.182668Z"
+        },
+        {
+          "agent_name": "ImplementationAgent",
+          "input_summary": "models=['RandomForestClassifier', 'GradientBoostingClassifier', 'XGBClassifier']",
+          "output_summary": "errors=['RandomForestClassifier: Unknown scale method: None', 'GradientBoostingClassifier: Unknown scale method: None', 'XGBClassifier: Unknown scale method: None']",
+          "duration_seconds": 0.027,
+          "timestamp": "2026-04-25T07:55:56.209675Z"
+        }
+      ]
+    }
+  ],
+  "solved": false,
+  "total_duration_seconds": 2.537
+}

@@ -1,0 +1,17 @@
+{
+  "run_id": "ac570e74-baed-4278-8bf3-716bfbd39423",
+  "dataset_path": "D:\\Projects\\Personal\\AutoML\\data\\raw\\bank_marketing.csv",
+  "problem": "Predict whether a client will subscribe to a term deposit based on marketing call data.",
+  "schema_version": "1.0",
+  "llm_config": {
+    "provider": "groq",
+    "model": "llama-3.3-70b-versatile",
+    "base_url": "https://api.groq.com/openai/v1",
+    "temperature": 0.3,
+    "api_key_env_var": "GROQ_API_KEY"
+  },
+  "random_seed": 42,
+  "iterations": [],
+  "solved": false,
+  "total_duration_seconds": 2.009
+}

@@ -6,7 +6,7 @@ from imblearn.over_sampling import SMOTE
 from imblearn.pipeline import Pipeline as ImbPipeline
 from lightgbm import LGBMClassifier
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
@@ -20,6 +20,7 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import (
+    FunctionTransformer,
     LabelEncoder,
     MinMaxScaler,
     OneHotEncoder,
@@ -39,6 +40,7 @@ MODEL_MAP = {
     'CatBoostClassifier': CatBoostClassifier,
     'SVC': SVC,
     'KNeighborsClassifier': KNeighborsClassifier,
+    'GradientBoostingClassifier': GradientBoostingClassifier,
 }
 
 METRIC_MAP = {
@@ -57,7 +59,7 @@ def _strip_target_from_steps(
 ) -> list[PreprocessingStep]:
     """
     Safety net: remove target column from any preprocessing step columns.
-    This should have been caught by Rule 6 of the validator, but LLM is stochastic.
+    Steps with empty columns after stripping are kept — auto-detection handles them.
     """
     clean = []
     for step in steps:
@@ -69,15 +71,72 @@ def _strip_target_from_steps(
                     f"'{target_column}' from step '{step.operation}'. "
                     f'Plan error not caught by validator.'
                 )
-        if clean_cols:
-            clean.append(
-                PreprocessingStep(
-                    operation=step.operation,
-                    method=step.method,
-                    columns=clean_cols,
-                )
+        clean.append(
+            PreprocessingStep(
+                operation=step.operation,
+                method=step.method,
+                columns=clean_cols,
             )
+        )
     return clean
+
+
+def _build_transformer_specs(
+    plan_steps: list[PreprocessingStep],
+    X: pd.DataFrame,
+) -> list:
+    """
+    Build the transformers list for ColumnTransformer from plan steps.
+    Extracted as a pure function so it can be called fresh per model.
+    """
+    transformers = []
+    for step in plan_steps:
+        if step.operation == 'handle_imbalance':
+            continue
+
+        elif step.operation == 'impute_missing':
+            impute_cols = step.columns if step.columns else list(X.columns)
+            transformers.append((
+                f'impute_{step.method}',
+                SimpleImputer(strategy=step.method),
+                impute_cols,
+            ))
+
+        elif step.operation == 'encode_categorical':
+            if step.method == 'one_hot':
+                transformer = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
+            elif step.method == 'ordinal':
+                transformer = OrdinalEncoder(
+                    handle_unknown='use_encoded_value', unknown_value=-1
+                )
+            else:
+                raise ValueError(f'Unknown encode method: {step.method}')
+            encode_cols = (
+                step.columns if step.columns
+                else list(X.select_dtypes(include='object').columns)
+            )
+            if encode_cols:
+                transformers.append(('encode', transformer, encode_cols))
+
+        elif step.operation == 'scale_numeric':
+            if step.method == 'standard':
+                transformer = StandardScaler()
+            elif step.method == 'minmax':
+                transformer = MinMaxScaler()
+            else:
+                raise ValueError(f'Unknown scale method: {step.method}')
+            scale_cols = (
+                step.columns if step.columns
+                else list(X.select_dtypes(include='number').columns)
+            )
+            if scale_cols:
+                transformers.append(('scale', transformer, scale_cols))
+
+        elif step.operation == 'drop_columns':
+            if step.columns:
+                transformers.append(('drop', 'drop', step.columns))
+
+    return transformers
 
 
 def execute_plan(
@@ -95,43 +154,9 @@ def execute_plan(
     le = LabelEncoder()
     y_encoded = le.fit_transform(y)
 
-    # Safety: strip target column from any preprocessing steps
     plan_steps = _strip_target_from_steps(plan.preprocessing_steps, plan.target_column, logs)
-
-    transformers = []
     has_imbalance_step = any(s.operation == 'handle_imbalance' for s in plan_steps)
 
-    for step in plan_steps:
-        if step.operation == 'handle_imbalance':
-            continue
-        elif step.operation == 'impute_missing':
-            transformers.append(
-                (
-                    f'impute_{step.method}',
-                    SimpleImputer(strategy=step.method),
-                    step.columns,
-                )
-            )
-        elif step.operation == 'encode_categorical':
-            if step.method == 'one_hot':
-                transformer = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
-            elif step.method == 'ordinal':
-                transformer = OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)
-            else:
-                raise ValueError(f'Unknown encode method: {step.method}')
-            transformers.append(('encode', transformer, step.columns))
-        elif step.operation == 'scale_numeric':
-            if step.method == 'standard':
-                transformer = StandardScaler()
-            elif step.method == 'minmax':
-                transformer = MinMaxScaler()
-            else:
-                raise ValueError(f'Unknown scale method: {step.method}')
-            transformers.append(('scale', transformer, step.columns))
-        elif step.operation == 'drop_columns':
-            transformers.append(('drop', 'drop', step.columns))
-
-    preprocessor = ColumnTransformer(transformers=transformers, remainder='passthrough')
     cv = StratifiedKFold(n_splits=plan.folds, shuffle=True, random_state=plan.random_seed)
     scorer = METRIC_MAP[plan.primary_metric]
     results = {}
@@ -140,23 +165,30 @@ def execute_plan(
         try:
             if logs is not None:
                 logs.append(f'ImplementationAgent: running {model_info.name}.')
+
             model = MODEL_MAP[model_info.name](**model_info.hyperparameters)
 
-            if has_imbalance_step:
-                pipeline = ImbPipeline(
-                    [
-                        ('preprocessor', preprocessor),
-                        ('smote', SMOTE(random_state=plan.random_seed)),
-                        ('classifier', model),
-                    ]
+            # Build a fresh preprocessor per model — avoids state leakage
+            # across multiple cross_val_score calls sharing the same instance.
+            transformers = _build_transformer_specs(plan_steps, X)
+            if transformers:
+                preprocessor = ColumnTransformer(
+                    transformers=transformers, remainder='passthrough'
                 )
             else:
-                pipeline = Pipeline(
-                    [
-                        ('preprocessor', preprocessor),
-                        ('classifier', model),
-                    ]
-                )
+                preprocessor = FunctionTransformer()  # identity pass-through
+
+            if has_imbalance_step:
+                pipeline = ImbPipeline([
+                    ('preprocessor', preprocessor),
+                    ('smote', SMOTE(random_state=plan.random_seed)),
+                    ('classifier', model),
+                ])
+            else:
+                pipeline = Pipeline([
+                    ('preprocessor', preprocessor),
+                    ('classifier', model),
+                ])
 
             scores = cross_val_score(
                 pipeline, X, y_encoded, cv=cv, scoring=scorer, n_jobs=1, error_score='raise'

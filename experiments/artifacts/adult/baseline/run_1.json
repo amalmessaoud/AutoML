@@ -1,0 +1,90 @@
+{
+  "run_id": "107f6b5c-4020-486b-bedd-aee33bbe0772",
+  "dataset_path": "D:\\Projects\\Personal\\AutoML\\data\\raw\\adult.csv",
+  "problem": "Predict whether an individual earns more than $50K per year from census data.",
+  "schema_version": "1.0",
+  "llm_config": {
+    "provider": "groq",
+    "model": "llama-3.3-70b-versatile",
+    "base_url": "https://api.groq.com/openai/v1",
+    "temperature": 0.3,
+    "api_key_env_var": "GROQ_API_KEY"
+  },
+  "random_seed": 42,
+  "iterations": [
+    {
+      "iteration_number": 1,
+      "plan": {
+        "task_type": "classification",
+        "target_column": "class",
+        "primary_metric": "f1_weighted",
+        "preprocessing_steps": [
+          {
+            "operation": "impute_missing",
+            "method": null,
+            "columns": []
+          },
+          {
+            "operation": "encode_categorical",
+            "method": "one_hot",
+            "columns": []
+          },
+          {
+            "operation": "scale_numeric",
+            "method": null,
+            "columns": []
+          }
+        ],
+        "models_to_try": [
+          {
+            "name": "RandomForestClassifier",
+            "hyperparameters": {}
+          },
+          {
+            "name": "LogisticRegression",
+            "hyperparameters": {}
+          },
+          {
+            "name": "XGBClassifier",
+            "hyperparameters": {}
+          }
+        ],
+        "validation_method": "cross_validation",
+        "folds": 5,
+        "random_seed": 42,
+        "reasoning": "converted from BaselinePlan"
+      },
+      "results": {
+        "RandomForestClassifier": {
+          "error": "Unknown scale method: None"
+        },
+        "LogisticRegression": {
+          "error": "Unknown scale method: None"
+        },
+        "XGBClassifier": {
+          "error": "Unknown scale method: None"
+        }
+      },
+      "evaluation": "execution_failed",
+      "solved": false,
+      "agent_calls": [
+        {
+          "agent_name": "BaselineAnalyzerAgent",
+          "input_summary": "dataset=adult, iter=1",
+          "output_summary": "parse_success=True, models=['RandomForestClassifier', 'LogisticRegression', 'XGBClassifier']",
+          "duration_seconds": 3.595,
+          "timestamp": "2026-04-23T08:18:32.227607Z"
+        },
+        {
+          "agent_name": "ImplementationAgent",
+          "input_summary": "models=['RandomForestClassifier', 'LogisticRegression', 'XGBClassifier']",
+          "output_summary": "errors=['RandomForestClassifier: Unknown scale method: None', 'LogisticRegression: Unknown scale method: None', 'XGBClassifier: Unknown scale method: None']",
+          "duration_seconds": 0.945,
+          "timestamp": "2026-04-23T08:18:33.172434Z"
+        }
+      ]
+    }
+  ],
+  "solved": false,
+  "total_duration_seconds": 4.736
+}

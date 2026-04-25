@@ -55,8 +55,16 @@ GROQ_LLAMA_70B = LLMConfig(
 
 GOOGLE_GEMINI_FLASH = LLMConfig(
     provider='google',
-    model='gemini-2.0-flash',
+    model='models/gemini-2.5-flash',
     base_url='https://generativelanguage.googleapis.com/v1beta/openai/',
     temperature=0.3,
     api_key_env_var='GOOGLE_API_KEY',
+)
+
+OPENROUTER_DEEPSEEK = LLMConfig(
+    provider='openrouter',
+    model='openrouter/free',  # or deepseek-chat
+    base_url='https://openrouter.ai/api/v1',
+    temperature=0.3,
+    api_key_env_var='OPENROUTER_API_KEY',
 )

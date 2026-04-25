@@ -10,7 +10,8 @@ class PreprocessingStep(BaseModel):
         description='Method for the operation (optional for some ops)',
     )
 
-    columns: list[str] = Field(..., description='Columns to apply to')
+    columns: list[str] = Field(default_factory=list, description='Columns to apply to')
+
 
     @model_validator(mode='after')
     def normalize_and_validate_operation(self):

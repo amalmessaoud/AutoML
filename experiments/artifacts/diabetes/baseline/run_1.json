@@ -1,0 +1,85 @@
+{
+  "run_id": "a52e165c-fd6c-4c0e-9c17-355e72d9967a",
+  "dataset_path": "D:\\Projects\\Personal\\AutoML\\data\\raw\\diabetes.csv",
+  "problem": "Predict whether a patient has diabetes based on diagnostic measurements.",
+  "schema_version": "1.0",
+  "llm_config": {
+    "provider": "groq",
+    "model": "llama-3.3-70b-versatile",
+    "base_url": "https://api.groq.com/openai/v1",
+    "temperature": 0.3,
+    "api_key_env_var": "GROQ_API_KEY"
+  },
+  "random_seed": 42,
+  "iterations": [
+    {
+      "iteration_number": 1,
+      "plan": {
+        "task_type": "classification",
+        "target_column": "class",
+        "primary_metric": "f1_macro",
+        "preprocessing_steps": [
+          {
+            "operation": "encode_categorical",
+            "method": "one_hot",
+            "columns": []
+          },
+          {
+            "operation": "scale_numeric",
+            "method": null,
+            "columns": []
+          }
+        ],
+        "models_to_try": [
+          {
+            "name": "RandomForestClassifier",
+            "hyperparameters": {}
+          },
+          {
+            "name": "LogisticRegression",
+            "hyperparameters": {}
+          },
+          {
+            "name": "GradientBoostingClassifier",
+            "hyperparameters": {}
+          }
+        ],
+        "validation_method": "cross_validation",
+        "folds": 5,
+        "random_seed": 42,
+        "reasoning": "converted from BaselinePlan"
+      },
+      "results": {
+        "RandomForestClassifier": {
+          "error": "Unknown scale method: None"
+        },
+        "LogisticRegression": {
+          "error": "Unknown scale method: None"
+        },
+        "GradientBoostingClassifier": {
+          "error": "Unknown scale method: None"
+        }
+      },
+      "evaluation": "execution_failed",
+      "solved": false,
+      "agent_calls": [
+        {
+          "agent_name": "BaselineAnalyzerAgent",
+          "input_summary": "dataset=diabetes, iter=1",
+          "output_summary": "parse_success=True, models=['RandomForestClassifier', 'LogisticRegression', 'GradientBoostingClassifier']",
+          "duration_seconds": 3.359,
+          "timestamp": "2026-04-23T08:14:37.838312Z"
+        },
+        {
+          "agent_name": "ImplementationAgent",
+          "input_summary": "models=['RandomForestClassifier', 'LogisticRegression', 'GradientBoostingClassifier']",
+          "output_summary": "errors=['RandomForestClassifier: Unknown scale method: None', 'LogisticRegression: Unknown scale method: None', 'GradientBoostingClassifier: Unknown scale method: None']",
+          "duration_seconds": 0.03,
+          "timestamp": "2026-04-23T08:14:37.868604Z"
+        }
+      ]
+    }
+  ],
+  "solved": false,
+  "total_duration_seconds": 3.41
+}

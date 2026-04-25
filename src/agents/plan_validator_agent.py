@@ -93,6 +93,19 @@ class PlanValidatorAgent:
                     f"preprocessing step '{step.operation}' — target is never a feature, "
                     f'remove it from the columns list.'
                 )
+        
+        # Rule 7: object-dtype columns present but no encode_categorical step
+        object_cols = [c.name for c in quality_report.columns if c.dtype == 'object' 
+                    and c.name != plan.target_column]
+        if object_cols:
+            has_encode = any(s.operation == 'encode_categorical' for s in plan.preprocessing_steps)
+            if not has_encode:
+                issues.append(
+                    f"Rule7: columns {object_cols[:3]} have dtype=object but no "
+                    f"encode_categorical step found — all models will fail with "
+                    f"'could not convert string to float'."
+                )
+        
         passed = len(issues) == 0
 
         self._log(

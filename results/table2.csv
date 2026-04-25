@@ -1,0 +1,11 @@
+dataset,baseline,schema,variance_ratio (baseline_std/schema_std)
+adult,,,
+bank_marketing,,,
+breast_cancer,,,
+car_evaluation,,,
+diabetes,,,
+german_credit,,,
+iris,0.0029435598855807625,0.0,inf
+jungle_chess,,,
+vehicle,,,
+wine,,,

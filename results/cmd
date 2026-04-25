@@ -1,0 +1,32 @@
+python -m experiments.run_experiment --dataset iris --mode schema --runs 5; python -m experiments.run_experiment --dataset iris --mode baseline --runs 5
+Start-Sleep -Seconds 120
+
+python -m experiments.run_experiment --dataset wine --mode schema --runs 5; python -m experiments.run_experiment --dataset wine --mode baseline --runs 5
+Start-Sleep -Seconds 120
+
+python -m experiments.run_experiment --dataset breast_cancer --mode schema --runs 5; python -m experiments.run_experiment --dataset breast_cancer --mode baseline --runs 5
+Start-Sleep -Seconds 120
+
+python -m experiments.run_experiment --dataset diabetes --mode schema --runs 5; python -m experiments.run_experiment --dataset diabetes --mode baseline --runs 5
+Start-Sleep -Seconds 120
+
+python -m experiments.run_experiment --dataset german_credit --mode schema --runs 5; python -m experiments.run_experiment --dataset german_credit --mode baseline --runs 5
+Start-Sleep -Seconds 120
+
+python -m experiments.run_experiment --dataset vehicle --mode schema --runs 5; python -m experiments.run_experiment --dataset vehicle --mode baseline --runs 5
+Start-Sleep -Seconds 120
+
+python -m experiments.run_experiment --dataset car_evaluation --mode schema --runs 5; python -m experiments.run_experiment --dataset car_evaluation --mode baseline --runs 5
+Start-Sleep -Seconds 120
+
+python -m experiments.run_experiment --dataset adult --mode schema --runs 5; python -m experiments.run_experiment --dataset adult --mode baseline --runs 5
+Start-Sleep -Seconds 120
+
+python -m experiments.run_experiment --dataset bank_marketing --mode schema --runs 5; python -m experiments.run_experiment --dataset bank_marketing --mode baseline --runs 5
+Start-Sleep -Seconds 120
+
+python -m experiments.run_experiment --dataset jungle_chess --mode schema --runs 5; python -m experiments.run_experiment --dataset jungle_chess --mode baseline --runs 5
+
+
+ # Delete all artifacts
+>> Remove-Item -Recurse -Force experiments\artifacts\*
