@@ -1,8 +1,8 @@
 {
-  "run_id": "2bdb0aca-5e20-4ae5-b8d3-67f1efda6659",
+  "run_id": "e35679d8-80d0-4770-90c7-2ed4b177656a",
   "dataset_path": "D:\\Projects\\Personal\\AutoML\\data\\raw\\breast_cancer.csv",
   "problem": "Predict whether a breast tumor is malignant or benign from cell nucleus features.",
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "llm_config": {
     "provider": "groq",
     "model": "llama-3.3-70b-versatile",
@@ -45,7 +45,7 @@
             "hyperparameters": {}
           },
           {
-            "name": "XGBClassifier",
+            "name": "GradientBoostingClassifier",
             "hyperparameters": {}
           }
         ],
@@ -56,35 +56,66 @@
       },
       "results": {
         "RandomForestClassifier": {
-          "error": "Unknown scale method: None"
+          "mean_score": 0.9668364037535909,
+          "std_score": 0.009206899857019774,
+          "individual_scores": [
+            0.9601706970128023,
+            0.9529042386185244,
+            0.9765611920308053,
+            0.9682971014492754,
+            0.9762487896565473
+          ]
         },
         "LogisticRegression": {
-          "error": "Unknown scale method: None"
+          "mean_score": 0.9619034912360988,
+          "std_score": 0.010497682761917442,
+          "individual_scores": [
+            0.9679707160832762,
+            0.9447918427130866,
+            0.9765611920308053,
+            0.9601706970128023,
+            0.9600230083405235
+          ]
         },
-        "XGBClassifier": {
-          "error": "Unknown scale method: None"
+        "GradientBoostingClassifier": {
+          "mean_score": 0.9604402048239951,
+          "std_score": 0.007095942550186118,
+          "individual_scores": [
+            0.9679707160832762,
+            0.9529042386185244,
+            0.9688888888888889,
+            0.9601706970128023,
+            0.9522664835164836
+          ]
         }
       },
-      "evaluation": "execution_failed",
-      "solved": false,
+      "evaluation": "",
+      "solved": true,
       "agent_calls": [
         {
           "agent_name": "BaselineAnalyzerAgent",
           "input_summary": "dataset=breast_cancer, iter=1",
-          "output_summary": "parse_success=True, models=['RandomForestClassifier', 'LogisticRegression', 'XGBClassifier']",
-          "duration_seconds": 4.686,
-          "timestamp": "2026-04-23T08:13:44.839568Z"
+          "output_summary": "parse_success=True, models=['RandomForestClassifier', 'LogisticRegression', 'GradientBoostingClassifier']",
+          "duration_seconds": 4.403,
+          "timestamp": "2026-04-26T07:21:39.910083Z"
         },
         {
           "agent_name": "ImplementationAgent",
-          "input_summary": "models=['RandomForestClassifier', 'LogisticRegression', 'XGBClassifier']",
-          "output_summary": "errors=['RandomForestClassifier: Unknown scale method: None', 'LogisticRegression: Unknown scale method: None', 'XGBClassifier: Unknown scale method: None']",
-          "duration_seconds": 0.04,
-          "timestamp": "2026-04-23T08:13:44.883331Z"
+          "input_summary": "models=['RandomForestClassifier', 'LogisticRegression', 'GradientBoostingClassifier']",
+          "output_summary": "errors=[]",
+          "duration_seconds": 4.287,
+          "timestamp": "2026-04-26T07:21:44.202646Z"
+        },
+        {
+          "agent_name": "CritiqueAgent",
+          "input_summary": "results keys=['RandomForestClassifier', 'LogisticRegression', 'GradientBoostingClassifier']",
+          "output_summary": "solved=True, score=0.9668",
+          "duration_seconds": 1.412,
+          "timestamp": "2026-04-26T07:21:45.614305Z"
         }
       ]
     }
   ],
-  "solved": false,
-  "total_duration_seconds": 4.759
+  "solved": true,
+  "total_duration_seconds": 10.134
 }

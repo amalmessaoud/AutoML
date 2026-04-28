@@ -1,8 +1,8 @@
 {
-  "run_id": "ec7ff9d1-5735-404d-941f-55e955d7de6e",
+  "run_id": "6913cb3c-da71-48d1-99e6-aa028df566a0",
   "dataset_path": "D:\\Projects\\Personal\\AutoML\\data\\raw\\vehicle.csv",
   "problem": "Predict the type of vehicle silhouette from shape features.",
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "llm_config": {
     "provider": "groq",
     "model": "llama-3.3-70b-versatile",
@@ -36,11 +36,11 @@
             "hyperparameters": {}
           },
           {
-            "name": "GradientBoostingClassifier",
+            "name": "LogisticRegression",
             "hyperparameters": {}
           },
           {
-            "name": "XGBClassifier",
+            "name": "GradientBoostingClassifier",
             "hyperparameters": {}
           }
         ],
@@ -51,35 +51,66 @@
       },
       "results": {
         "RandomForestClassifier": {
-          "error": "Unknown scale method: None"
+          "mean_score": 0.7495668610459381,
+          "std_score": 0.028146730599289665,
+          "individual_scores": [
+            0.7549295634402017,
+            0.7507778118098432,
+            0.6966006884681584,
+            0.7677922620857405,
+            0.7777339794257463
+          ]
+        },
+        "LogisticRegression": {
+          "mean_score": 0.7867753523613917,
+          "std_score": 0.0164986787948838,
+          "individual_scores": [
+            0.7631562873692767,
+            0.7706211828754632,
+            0.7968933936805422,
+            0.8013533630636187,
+            0.8018525348180578
+          ]
         },
         "GradientBoostingClassifier": {
-          "error": "Unknown scale method: None"
-        },
-        "XGBClassifier": {
-          "error": "Unknown scale method: None"
+          "mean_score": 0.7613310128917793,
+          "std_score": 0.011463845282903153,
+          "individual_scores": [
+            0.7407253599114064,
+            0.7645365776832821,
+            0.7672232097467739,
+            0.7748726539083529,
+            0.7592972632090812
+          ]
         }
       },
-      "evaluation": "execution_failed",
-      "solved": false,
+      "evaluation": "",
+      "solved": true,
       "agent_calls": [
         {
           "agent_name": "BaselineAnalyzerAgent",
           "input_summary": "dataset=vehicle, iter=1",
-          "output_summary": "parse_success=True, models=['RandomForestClassifier', 'GradientBoostingClassifier', 'XGBClassifier']",
-          "duration_seconds": 3.024,
-          "timestamp": "2026-04-23T08:15:41.836053Z"
+          "output_summary": "parse_success=True, models=['RandomForestClassifier', 'LogisticRegression', 'GradientBoostingClassifier']",
+          "duration_seconds": 2.742,
+          "timestamp": "2026-04-28T06:19:08.905734Z"
         },
         {
           "agent_name": "ImplementationAgent",
-          "input_summary": "models=['RandomForestClassifier', 'GradientBoostingClassifier', 'XGBClassifier']",
-          "output_summary": "errors=['RandomForestClassifier: Unknown scale method: None', 'GradientBoostingClassifier: Unknown scale method: None', 'XGBClassifier: Unknown scale method: None']",
-          "duration_seconds": 0.057,
-          "timestamp": "2026-04-23T08:15:41.895540Z"
+          "input_summary": "models=['RandomForestClassifier', 'LogisticRegression', 'GradientBoostingClassifier']",
+          "output_summary": "errors=[]",
+          "duration_seconds": 5.8,
+          "timestamp": "2026-04-28T06:19:14.705966Z"
+        },
+        {
+          "agent_name": "CritiqueAgent",
+          "input_summary": "results keys=['RandomForestClassifier', 'LogisticRegression', 'GradientBoostingClassifier']",
+          "output_summary": "solved=True, score=0.7868",
+          "duration_seconds": 0.935,
+          "timestamp": "2026-04-28T06:19:15.641161Z"
         }
       ]
     }
   ],
-  "solved": false,
-  "total_duration_seconds": 3.112
+  "solved": true,
+  "total_duration_seconds": 9.55
 }

@@ -1,11 +1,11 @@
 dataset,baseline,schema,variance_ratio (baseline_std/schema_std)
-adult,,,
-bank_marketing,,,
-breast_cancer,,,
-car_evaluation,,,
-diabetes,,,
-german_credit,,,
-iris,0.0029435598855807625,0.0,inf
-jungle_chess,,,
-vehicle,,,
-wine,,,
+adult,,0.0005818248877454437,
+bank_marketing,0.0055856746414377064,0.0,inf
+breast_cancer,0.001343481745317018,0.002109549169846498,0.637
+car_evaluation,0.0,0.0066704383813959295,0.0
+diabetes,0.0,0.0,
+german_credit,0.0013147152923732458,0.04272384700375191,0.031
+iris,6.037383539249264e-05,0.0,inf
+jungle_chess,0.0022627723040553596,0.012841703169751273,0.176
+vehicle,0.01830346366128552,0.0,inf
+wine,0.002317013638285278,0.003986674554061318,0.581

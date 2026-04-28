@@ -1,8 +1,8 @@
 {
-  "run_id": "94125e2e-ad7b-4727-b042-8e9f0764d41c",
+  "run_id": "4a899d9e-a71e-4819-9d26-b97fa379d948",
   "dataset_path": "D:\\Projects\\Personal\\AutoML\\data\\raw\\iris.csv",
   "problem": "Predict the species of an iris flower from sepal and petal measurements.",
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "llm_config": {
     "provider": "groq",
     "model": "llama-3.3-70b-versatile",
@@ -91,26 +91,26 @@
           "agent_name": "BaselineAnalyzerAgent",
           "input_summary": "dataset=iris, iter=1",
           "output_summary": "parse_success=True, models=['RandomForestClassifier', 'LogisticRegression', 'GradientBoostingClassifier']",
-          "duration_seconds": 3.984,
-          "timestamp": "2026-04-22T10:35:29.351684Z"
+          "duration_seconds": 2.153,
+          "timestamp": "2026-04-27T12:20:01.411443Z"
         },
         {
           "agent_name": "ImplementationAgent",
           "input_summary": "models=['RandomForestClassifier', 'LogisticRegression', 'GradientBoostingClassifier']",
           "output_summary": "errors=[]",
-          "duration_seconds": 2.026,
-          "timestamp": "2026-04-22T10:35:31.377581Z"
+          "duration_seconds": 4.933,
+          "timestamp": "2026-04-27T12:20:06.344769Z"
         },
         {
           "agent_name": "CritiqueAgent",
           "input_summary": "results keys=['RandomForestClassifier', 'LogisticRegression', 'GradientBoostingClassifier']",
           "output_summary": "solved=True, score=0.9598",
-          "duration_seconds": 2.086,
-          "timestamp": "2026-04-22T10:35:33.463551Z"
+          "duration_seconds": 1.721,
+          "timestamp": "2026-04-27T12:20:08.065581Z"
         }
       ]
     }
   ],
   "solved": true,
-  "total_duration_seconds": 8.101
+  "total_duration_seconds": 8.817
 }

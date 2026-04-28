@@ -59,7 +59,6 @@ def _fit_best_model(
     else:
         preprocessor = FunctionTransformer()
 
-    # Find the matching model spec from the plan
     model_spec = next(m for m in final_plan.models_to_try if m.name == best_model_name)
     model = MODEL_MAP[best_model_name](**model_spec.hyperparameters)
 
@@ -71,13 +70,11 @@ def _fit_best_model(
 
     fitted_model = pipeline.named_steps['classifier']
 
-    # Recover feature names after preprocessing
     try:
         feature_names = list(
             pipeline.named_steps['preprocessor'].get_feature_names_out()
         )
     except Exception:
-        # Fallback: use original column names if transformer can't produce names
         feature_names = list(X.columns)
 
     X_transformed = pipeline.named_steps['preprocessor'].transform(X)
@@ -91,11 +88,18 @@ def run_automl_pipeline(
     max_iterations: int = 3,
     config: LLMConfig = None,
     use_explainability: bool = True,
+    log_callback=None,
 ) -> dict:
     if config is None:
         config = GROQ_LLAMA_8B
 
     logs: list[str] = []
+
+    def _log(msg: str):
+        logs.append(msg)
+        if log_callback:
+            log_callback(msg)
+
     previous_attempts: list[AttemptSummary] = []
     final_plan: AutoMLPlan | None = None
     final_results: dict | None = None
@@ -112,7 +116,7 @@ def run_automl_pipeline(
     df = pd.read_csv(csv_path, sep=None, engine='python')
 
     for iteration in range(1, max_iterations + 1):
-        logs.append(f'==== ITERATION {iteration} ====')
+        _log(f'==== ITERATION {iteration} ====')
 
         desc = generate_dataset_description(csv_path)
 
@@ -129,7 +133,7 @@ def run_automl_pipeline(
 
         validation_result = validator.run(plan, quality_report)
         if not validation_result.passed:
-            logs.append(
+            _log(
                 f'PlanValidatorAgent: issues found — requesting correction. '
                 f'Issues: {validation_result.issues}'
             )
@@ -147,7 +151,7 @@ def run_automl_pipeline(
                 quality_report=quality_report,
             )
             validation_result = validator.run(plan, quality_report)
-            logs.append(
+            _log(
                 f'PlanValidatorAgent: after correction — '
                 f'{"PASSED" if validation_result.passed else "STILL FAILING"}.'
             )
@@ -185,24 +189,23 @@ def run_automl_pipeline(
         )
 
         if evaluation['solved']:
-            logs.append('Pipeline: problem solved — stopping.')
+            _log('Pipeline: problem solved — stopping.')
             break
 
-        logs.append('Pipeline: not solved — memory updated for next iteration.')
+        _log('Pipeline: not solved — memory updated for next iteration.')
 
     else:
-        logs.append('Pipeline: max iterations reached.')
+        _log('Pipeline: max iterations reached.')
 
-    # --- Explainability: run on best model after loop ends ---
+    # --- Explainability ---
     if use_explainability and final_plan is not None and final_evaluation is not None:
         best_model_name = final_evaluation.get('best_model')
-        # Only explain if the best model actually succeeded (no error key)
         if (
             best_model_name
             and best_model_name in final_results
             and 'error' not in final_results[best_model_name]
         ):
-            logs.append(f'ExplainabilityAgent: fitting {best_model_name} on full dataset.')
+            _log(f'ExplainabilityAgent: fitting {best_model_name} on full dataset.')
             try:
                 fitted_model, X_transformed, y_enc, feature_names = _fit_best_model(
                     final_plan, csv_path, best_model_name, logs
@@ -219,18 +222,18 @@ def run_automl_pipeline(
                     feature_names=feature_names,
                     random_state=final_plan.random_seed,
                 )
-                logs.append('ExplainabilityAgent: report generated successfully.')
+                _log('ExplainabilityAgent: report generated successfully.')
             except Exception as e:
-                logs.append(f'ExplainabilityAgent: failed — {e}')
+                _log(f'ExplainabilityAgent: failed — {e}')
         else:
-            logs.append(
+            _log(
                 f'ExplainabilityAgent: skipped — best model '
                 f'"{best_model_name}" had execution errors.'
             )
 
     cost_report = cost_tracker.build_report(iterations=iteration)
-    logs.append('==== COST REPORT ====')
-    logs.append(cost_report.summary())
+    _log('==== COST REPORT ====')
+    _log(cost_report.summary())
 
     return {
         'final_plan': final_plan,

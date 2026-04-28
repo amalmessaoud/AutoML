@@ -1,8 +1,8 @@
 {
-  "run_id": "b6f06c55-6d57-4653-9586-b621fe5e200b",
+  "run_id": "543834ef-a83b-4cd1-8b7c-dff69c46ba66",
   "dataset_path": "D:\\Projects\\Personal\\AutoML\\data\\raw\\car_evaluation.csv",
   "problem": "Predict the acceptability of a car based on price, comfort, and safety attributes.",
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "llm_config": {
     "provider": "groq",
     "model": "llama-3.3-70b-versatile",
@@ -40,7 +40,7 @@
             "hyperparameters": {}
           },
           {
-            "name": "GradientBoostingClassifier",
+            "name": "LogisticRegression",
             "hyperparameters": {}
           }
         ],
@@ -51,14 +51,14 @@
       },
       "results": {
         "RandomForestClassifier": {
-          "mean_score": 0.934251764165199,
-          "std_score": 0.012367175196450626,
+          "mean_score": 0.9367553816580718,
+          "std_score": 0.010874062873909338,
           "individual_scores": [
-            0.9268433793753472,
-            0.917303649301257,
-            0.9488469601677149,
+            0.9402990967986002,
+            0.91951759522092,
+            0.9508703635047578,
             0.930133775031655,
-            0.9481310569500204
+            0.9429560777344264
           ]
         },
         "XGBClassifier": {
@@ -72,15 +72,15 @@
             0.9733216299606341
           ]
         },
-        "GradientBoostingClassifier": {
-          "mean_score": 0.9402332878981738,
-          "std_score": 0.017608457642640657,
+        "LogisticRegression": {
+          "mean_score": 0.8533233738771901,
+          "std_score": 0.01848587231586988,
           "individual_scores": [
-            0.9451028138528138,
-            0.9214196033839985,
-            0.9594794606620766,
-            0.9177309451813285,
-            0.9574336164106518
+            0.8818480941428837,
+            0.8439978560217795,
+            0.8624323593073593,
+            0.8264342483136312,
+            0.8519043116002976
           ]
         }
       },
@@ -90,27 +90,27 @@
         {
           "agent_name": "BaselineAnalyzerAgent",
           "input_summary": "dataset=car_evaluation, iter=1",
-          "output_summary": "parse_success=True, models=['RandomForestClassifier', 'XGBClassifier', 'GradientBoostingClassifier']",
-          "duration_seconds": 2.831,
-          "timestamp": "2026-04-23T08:16:57.303069Z"
+          "output_summary": "parse_success=True, models=['RandomForestClassifier', 'XGBClassifier', 'LogisticRegression']",
+          "duration_seconds": 4.622,
+          "timestamp": "2026-04-26T21:14:40.728181Z"
         },
         {
           "agent_name": "ImplementationAgent",
-          "input_summary": "models=['RandomForestClassifier', 'XGBClassifier', 'GradientBoostingClassifier']",
+          "input_summary": "models=['RandomForestClassifier', 'XGBClassifier', 'LogisticRegression']",
           "output_summary": "errors=[]",
-          "duration_seconds": 29.747,
-          "timestamp": "2026-04-23T08:17:27.050475Z"
+          "duration_seconds": 17.6,
+          "timestamp": "2026-04-26T21:14:58.492422Z"
         },
         {
           "agent_name": "CritiqueAgent",
-          "input_summary": "results keys=['RandomForestClassifier', 'XGBClassifier', 'GradientBoostingClassifier']",
+          "input_summary": "results keys=['RandomForestClassifier', 'XGBClassifier', 'LogisticRegression']",
           "output_summary": "solved=True, score=0.9600",
-          "duration_seconds": 1.017,
-          "timestamp": "2026-04-23T08:17:28.067557Z"
+          "duration_seconds": 2.547,
+          "timestamp": "2026-04-26T21:15:01.039410Z"
         }
       ]
     }
   ],
   "solved": true,
-  "total_duration_seconds": 33.607
+  "total_duration_seconds": 24.974
 }

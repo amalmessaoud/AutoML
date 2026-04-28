@@ -1,8 +1,8 @@
 {
-  "run_id": "db055205-c769-47f3-985e-c65ffabc6119",
+  "run_id": "0062dcde-755f-430a-8910-7155bb7300cd",
   "dataset_path": "D:\\Projects\\Personal\\AutoML\\data\\raw\\iris.csv",
   "problem": "Predict the species of an iris flower from sepal and petal measurements.",
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "llm_config": {
     "provider": "groq",
     "model": "llama-3.3-70b-versatile",
@@ -98,33 +98,33 @@
           "agent_name": "AnalyzerAgent",
           "input_summary": "dataset=iris, iter=1",
           "output_summary": "models=['LogisticRegression', 'RandomForestClassifier', 'SVC']",
-          "duration_seconds": 1.189,
-          "timestamp": "2026-04-25T08:33:29.196952Z"
+          "duration_seconds": 2.047,
+          "timestamp": "2026-04-27T12:17:51.372803Z"
         },
         {
           "agent_name": "PlanValidatorAgent",
           "input_summary": "plan models=['LogisticRegression', 'RandomForestClassifier', 'SVC']",
           "output_summary": "passed=False, issues=[\"Rule6: target column 'class' appears in preprocessing step 'encode_categorical' — target is never a feature, remove it from the columns list.\"]",
-          "duration_seconds": 1.265,
-          "timestamp": "2026-04-25T08:33:30.461911Z"
+          "duration_seconds": 2.297,
+          "timestamp": "2026-04-27T12:17:53.669488Z"
         },
         {
           "agent_name": "ImplementationAgent",
           "input_summary": "models=['LogisticRegression', 'RandomForestClassifier', 'SVC']",
           "output_summary": "errors=[]",
-          "duration_seconds": 0.8,
-          "timestamp": "2026-04-25T08:33:31.261811Z"
+          "duration_seconds": 2.666,
+          "timestamp": "2026-04-27T12:17:56.335182Z"
         },
         {
           "agent_name": "CritiqueAgent",
           "input_summary": "results keys=['LogisticRegression', 'RandomForestClassifier', 'SVC']",
           "output_summary": "solved=True, score=0.9600",
-          "duration_seconds": 0.963,
-          "timestamp": "2026-04-25T08:33:32.224664Z"
+          "duration_seconds": 1.988,
+          "timestamp": "2026-04-27T12:17:58.333502Z"
         }
       ]
     }
   ],
   "solved": true,
-  "total_duration_seconds": 4.221
+  "total_duration_seconds": 9.025
 }

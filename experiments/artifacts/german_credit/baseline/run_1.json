@@ -1,8 +1,8 @@
 {
-  "run_id": "c8c39d89-d8ac-4513-8957-6ba7200c71ba",
+  "run_id": "2a811a80-558b-4e97-a254-83bfb9ee072a",
   "dataset_path": "D:\\Projects\\Personal\\AutoML\\data\\raw\\german_credit.csv",
   "problem": "Predict whether a loan applicant is a good or bad credit risk.",
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "llm_config": {
     "provider": "groq",
     "model": "llama-3.3-70b-versatile",
@@ -17,7 +17,7 @@
       "plan": {
         "task_type": "classification",
         "target_column": "class",
-        "primary_metric": "f1_weighted",
+        "primary_metric": "f1_macro",
         "preprocessing_steps": [
           {
             "operation": "encode_categorical",
@@ -51,35 +51,66 @@
       },
       "results": {
         "RandomForestClassifier": {
-          "error": "Unknown scale method: None"
+          "mean_score": 0.6780203726139352,
+          "std_score": 0.01179703589421097,
+          "individual_scores": [
+            0.6894409937888198,
+            0.6881496881496881,
+            0.680174202987309,
+            0.6567545795243599,
+            0.6755823986194995
+          ]
         },
         "LogisticRegression": {
-          "error": "Unknown scale method: None"
+          "mean_score": 0.6765732753345804,
+          "std_score": 0.013348800430909963,
+          "individual_scores": [
+            0.6791169297907842,
+            0.6614420062695925,
+            0.6621621621621622,
+            0.6836158192090396,
+            0.6965294592413236
+          ]
         },
         "XGBClassifier": {
-          "error": "Unknown scale method: None"
+          "mean_score": 0.6853198368312157,
+          "std_score": 0.026800972651303955,
+          "individual_scores": [
+            0.6491683991683992,
+            0.6775793650793651,
+            0.6887871853546911,
+            0.6791169297907842,
+            0.7319473047628386
+          ]
         }
       },
-      "evaluation": "execution_failed",
-      "solved": false,
+      "evaluation": "Try hyperparameter tuning for the XGBClassifier, and consider feature engineering to further improve the model's performance.",
+      "solved": true,
       "agent_calls": [
         {
           "agent_name": "BaselineAnalyzerAgent",
           "input_summary": "dataset=german_credit, iter=1",
           "output_summary": "parse_success=True, models=['RandomForestClassifier', 'LogisticRegression', 'XGBClassifier']",
-          "duration_seconds": 2.822,
-          "timestamp": "2026-04-23T08:07:41.693523Z"
+          "duration_seconds": 4.52,
+          "timestamp": "2026-04-27T12:16:08.564546Z"
         },
         {
           "agent_name": "ImplementationAgent",
           "input_summary": "models=['RandomForestClassifier', 'LogisticRegression', 'XGBClassifier']",
-          "output_summary": "errors=['RandomForestClassifier: Unknown scale method: None', 'LogisticRegression: Unknown scale method: None', 'XGBClassifier: Unknown scale method: None']",
-          "duration_seconds": 0.072,
-          "timestamp": "2026-04-23T08:07:41.765413Z"
+          "output_summary": "errors=[]",
+          "duration_seconds": 4.298,
+          "timestamp": "2026-04-27T12:16:12.862501Z"
+        },
+        {
+          "agent_name": "CritiqueAgent",
+          "input_summary": "results keys=['RandomForestClassifier', 'LogisticRegression', 'XGBClassifier']",
+          "output_summary": "solved=True, score=0.6853",
+          "duration_seconds": 1.528,
+          "timestamp": "2026-04-27T12:16:14.390861Z"
         }
       ]
     }
   ],
-  "solved": false,
-  "total_duration_seconds": 2.928
+  "solved": true,
+  "total_duration_seconds": 10.374
 }

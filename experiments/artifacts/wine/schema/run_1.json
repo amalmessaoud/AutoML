@@ -1,8 +1,8 @@
 {
-  "run_id": "708d2fb2-5d9f-47cf-b75c-9634df9174a1",
+  "run_id": "62557c8b-c40e-474b-9ec7-cd4880bd5a12",
   "dataset_path": "D:\\Projects\\Personal\\AutoML\\data\\raw\\wine.csv",
   "problem": "Predict the wine cultivar class from chemical analysis measurements.",
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "llm_config": {
     "provider": "groq",
     "model": "llama-3.3-70b-versatile",
@@ -18,7 +18,27 @@
         "task_type": "classification",
         "target_column": "class",
         "primary_metric": "accuracy",
-        "preprocessing_steps": [],
+        "preprocessing_steps": [
+          {
+            "operation": "scale_numeric",
+            "method": "standard",
+            "columns": [
+              "Alcohol",
+              "Malic_acid",
+              "Ash",
+              "Alcalinity_of_ash",
+              "Magnesium",
+              "Total_phenols",
+              "Flavanoids",
+              "Nonflavanoid_phenols",
+              "Proanthocyanins",
+              "Color_intensity",
+              "Hue",
+              "OD280%2FOD315_of_diluted_wines",
+              "Proline"
+            ]
+          }
+        ],
         "models_to_try": [
           {
             "name": "LogisticRegression",
@@ -40,13 +60,13 @@
       },
       "results": {
         "LogisticRegression": {
-          "mean_score": 0.9609523809523809,
-          "std_score": 0.02214499050996228,
+          "mean_score": 0.9833333333333332,
+          "std_score": 0.013608276348795441,
           "individual_scores": [
-            0.9444444444444444,
-            0.9444444444444444,
-            0.9444444444444444,
-            0.9714285714285714,
+            0.9722222222222222,
+            0.9722222222222222,
+            0.9722222222222222,
+            1.0,
             1.0
           ]
         },
@@ -62,14 +82,14 @@
           ]
         },
         "SVC": {
-          "mean_score": 0.6744444444444444,
-          "std_score": 0.039769428683323275,
+          "mean_score": 0.9833333333333332,
+          "std_score": 0.022222222222222233,
           "individual_scores": [
-            0.6388888888888888,
-            0.6944444444444444,
-            0.6388888888888888,
-            0.6571428571428571,
-            0.7428571428571429
+            0.9444444444444444,
+            1.0,
+            0.9722222222222222,
+            1.0,
+            1.0
           ]
         }
       },
@@ -80,33 +100,33 @@
           "agent_name": "AnalyzerAgent",
           "input_summary": "dataset=wine, iter=1",
           "output_summary": "models=['LogisticRegression', 'RandomForestClassifier', 'SVC']",
-          "duration_seconds": 2.892,
-          "timestamp": "2026-04-23T08:11:02.094658Z"
+          "duration_seconds": 2.605,
+          "timestamp": "2026-04-28T06:20:50.593987Z"
         },
         {
           "agent_name": "PlanValidatorAgent",
           "input_summary": "plan models=['LogisticRegression', 'RandomForestClassifier', 'SVC']",
           "output_summary": "passed=True, issues=[]",
           "duration_seconds": 0.0,
-          "timestamp": "2026-04-23T08:11:02.094658Z"
+          "timestamp": "2026-04-28T06:20:50.593987Z"
         },
         {
           "agent_name": "ImplementationAgent",
           "input_summary": "models=['LogisticRegression', 'RandomForestClassifier', 'SVC']",
           "output_summary": "errors=[]",
-          "duration_seconds": 7.375,
-          "timestamp": "2026-04-23T08:11:09.469810Z"
+          "duration_seconds": 0.875,
+          "timestamp": "2026-04-28T06:20:51.468767Z"
         },
         {
           "agent_name": "CritiqueAgent",
           "input_summary": "results keys=['LogisticRegression', 'RandomForestClassifier', 'SVC']",
-          "output_summary": "solved=True, score=0.9830",
-          "duration_seconds": 1.18,
-          "timestamp": "2026-04-23T08:11:10.650048Z"
+          "output_summary": "solved=True, score=0.9833",
+          "duration_seconds": 0.964,
+          "timestamp": "2026-04-28T06:20:52.432527Z"
         }
       ]
     }
   ],
   "solved": true,
-  "total_duration_seconds": 11.488
+  "total_duration_seconds": 4.486
 }

@@ -114,7 +114,7 @@ STRICT RULES:
 - preprocessing_steps can be empty list
 - models_to_try: exactly 1 to 3 models
 - Allowed model names: LogisticRegression, RandomForestClassifier, XGBClassifier,
-  LGBMClassifier, CatBoostClassifier, SVC, KNeighborsClassifier
+  LGBMClassifier, SVC, KNeighborsClassifier
 - hyperparameters: dict, empty means use defaults
 - BEFORE choosing preprocessing: scan the dataset description for columns listed as
   dtype=object or with string examples. Every such column MUST have an encode_categorical step.

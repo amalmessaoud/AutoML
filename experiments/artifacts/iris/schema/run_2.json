@@ -1,8 +1,8 @@
 {
-  "run_id": "e2cd4b13-6d03-4fcb-a469-e1cacd74b585",
+  "run_id": "e42faf7a-b416-4c67-995b-a3988983adcb",
   "dataset_path": "D:\\Projects\\Personal\\AutoML\\data\\raw\\iris.csv",
   "problem": "Predict the species of an iris flower from sepal and petal measurements.",
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "llm_config": {
     "provider": "groq",
     "model": "llama-3.3-70b-versatile",
@@ -54,7 +54,7 @@
         "validation_method": "cross_validation",
         "folds": 5,
         "random_seed": 42,
-        "reasoning": "Dataset is mostly numeric with one categorical column and no missing values. Classes are balanced."
+        "reasoning": "Dataset is mostly numeric with one categorical column and no missing values."
       },
       "results": {
         "LogisticRegression": {
@@ -69,12 +69,12 @@
           ]
         },
         "RandomForestClassifier": {
-          "mean_score": 0.9600000000000002,
-          "std_score": 0.038873012632301994,
+          "mean_score": 0.9533333333333334,
+          "std_score": 0.04521553322083511,
           "individual_scores": [
             1.0,
             0.9666666666666667,
-            0.9333333333333333,
+            0.9,
             1.0,
             0.9
           ]
@@ -98,33 +98,33 @@
           "agent_name": "AnalyzerAgent",
           "input_summary": "dataset=iris, iter=1",
           "output_summary": "models=['LogisticRegression', 'RandomForestClassifier', 'SVC']",
-          "duration_seconds": 1.391,
-          "timestamp": "2026-04-25T08:33:24.173274Z"
+          "duration_seconds": 2.292,
+          "timestamp": "2026-04-27T12:17:41.226409Z"
         },
         {
           "agent_name": "PlanValidatorAgent",
           "input_summary": "plan models=['LogisticRegression', 'RandomForestClassifier', 'SVC']",
           "output_summary": "passed=False, issues=[\"Rule6: target column 'class' appears in preprocessing step 'encode_categorical' — target is never a feature, remove it from the columns list.\"]",
-          "duration_seconds": 1.513,
-          "timestamp": "2026-04-25T08:33:25.686725Z"
+          "duration_seconds": 2.661,
+          "timestamp": "2026-04-27T12:17:43.886927Z"
         },
         {
           "agent_name": "ImplementationAgent",
           "input_summary": "models=['LogisticRegression', 'RandomForestClassifier', 'SVC']",
           "output_summary": "errors=[]",
-          "duration_seconds": 1.19,
-          "timestamp": "2026-04-25T08:33:26.877210Z"
+          "duration_seconds": 3.506,
+          "timestamp": "2026-04-27T12:17:47.393247Z"
         },
         {
           "agent_name": "CritiqueAgent",
           "input_summary": "results keys=['LogisticRegression', 'RandomForestClassifier', 'SVC']",
           "output_summary": "solved=True, score=0.9600",
-          "duration_seconds": 1.1,
-          "timestamp": "2026-04-25T08:33:27.977199Z"
+          "duration_seconds": 1.805,
+          "timestamp": "2026-04-27T12:17:49.198593Z"
         }
       ]
     }
   ],
   "solved": true,
-  "total_duration_seconds": 5.199
+  "total_duration_seconds": 10.283
 }

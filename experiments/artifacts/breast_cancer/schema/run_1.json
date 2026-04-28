@@ -1,8 +1,8 @@
 {
-  "run_id": "a1b88c11-20d7-4eeb-aed9-8b4d2f4c1a2c",
+  "run_id": "b9be5b34-873b-4ddc-8ba5-c21defe10323",
   "dataset_path": "D:\\Projects\\Personal\\AutoML\\data\\raw\\breast_cancer.csv",
   "problem": "Predict whether a breast tumor is malignant or benign from cell nucleus features.",
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "llm_config": {
     "provider": "groq",
     "model": "llama-3.3-70b-versatile",
@@ -64,32 +64,40 @@
         "validation_method": "cross_validation",
         "folds": 5,
         "random_seed": 42,
-        "reasoning": "Dataset has imbalanced target column and missing values in one column. Handling imbalance and imputing missing values are necessary."
+        "reasoning": ""
       },
       "results": {
         "LogisticRegression": {
-          "error": "Input X contains NaN.\nLogisticRegression does not accept missing values encoded as NaN natively. For supervised learning, you might want to consider sklearn.ensemble.HistGradientBoostingClassifier and Regressor which accept missing values encoded as NaNs natively. Alternatively, it is possible to preprocess the data, for instance by using an imputer transformer in a pipeline or drop samples with missing values. See https://scikit-learn.org/stable/modules/impute.html You can find a list of all estimators that handle NaN values at the following page: https://scikit-learn.org/stable/modules/impute.html#estimators-that-handle-nan-values"
-        },
-        "RandomForestClassifier": {
-          "mean_score": 0.9621044051259993,
-          "std_score": 0.0056855640001178265,
+          "mean_score": 0.9619034912360988,
+          "std_score": 0.010497682761917442,
           "individual_scores": [
             0.9679707160832762,
+            0.9447918427130866,
+            0.9765611920308053,
+            0.9601706970128023,
+            0.9600230083405235
+          ]
+        },
+        "RandomForestClassifier": {
+          "mean_score": 0.9619600145404767,
+          "std_score": 0.007818932796455577,
+          "individual_scores": [
+            0.9597492956126732,
             0.9529042386185244,
-            0.9609353200513422,
-            0.9682971014492754,
+            0.9765611920308053,
+            0.9601706970128023,
             0.9604146494275787
           ]
         },
         "XGBClassifier": {
-          "mean_score": 0.9522900187421002,
-          "std_score": 0.0087993304477086,
+          "mean_score": 0.9539270001064908,
+          "std_score": 0.013191466562674961,
           "individual_scores": [
-            0.9436490138577425,
-            0.9447918427130866,
-            0.9524456521739131,
-            0.9682971014492754,
-            0.9522664835164836
+            0.9275487321028117,
+            0.9609353200513422,
+            0.960565601937919,
+            0.9601706970128023,
+            0.9604146494275787
           ]
         }
       },
@@ -99,34 +107,34 @@
         {
           "agent_name": "AnalyzerAgent",
           "input_summary": "dataset=breast_cancer, iter=1",
-          "output_summary": "models=['LogisticRegression', 'RandomForestClassifier', 'SVC']",
-          "duration_seconds": 3.102,
-          "timestamp": "2026-04-23T08:12:58.621455Z"
+          "output_summary": "models=['LogisticRegression', 'RandomForestClassifier', 'XGBClassifier']",
+          "duration_seconds": 6.249,
+          "timestamp": "2026-04-26T07:07:27.480330Z"
         },
         {
           "agent_name": "PlanValidatorAgent",
           "input_summary": "plan models=['LogisticRegression', 'RandomForestClassifier', 'XGBClassifier']",
           "output_summary": "passed=True, issues=[]",
-          "duration_seconds": 1.727,
-          "timestamp": "2026-04-23T08:13:00.349638Z"
+          "duration_seconds": 2.285,
+          "timestamp": "2026-04-26T07:07:29.766550Z"
         },
         {
           "agent_name": "ImplementationAgent",
           "input_summary": "models=['LogisticRegression', 'RandomForestClassifier', 'XGBClassifier']",
-          "output_summary": "errors=['LogisticRegression: Input X contains NaN.\\nLogisticRegression does not accept missing values encoded as NaN natively. For supervised learning, you might want to consider sklearn.ensemble.HistGradientBoostingClassifier and Regressor which accept missing values encoded as NaNs natively. Alternatively, it is possible to preprocess the data, for instance by using an imputer transformer in a pipeline or drop samples with missing values. See https://scikit-learn.org/stable/modules/impute.html You can find a list of all estimators that handle NaN values at the following page: https://scikit-learn.org/stable/modules/impute.html#estimators-that-handle-nan-values']",
-          "duration_seconds": 3.075,
-          "timestamp": "2026-04-23T08:13:03.424715Z"
+          "output_summary": "errors=[]",
+          "duration_seconds": 4.548,
+          "timestamp": "2026-04-26T07:07:34.314459Z"
         },
         {
           "agent_name": "CritiqueAgent",
           "input_summary": "results keys=['LogisticRegression', 'RandomForestClassifier', 'XGBClassifier']",
-          "output_summary": "solved=True, score=0.9621",
-          "duration_seconds": 1.325,
-          "timestamp": "2026-04-23T08:13:04.749580Z"
+          "output_summary": "solved=True, score=0.9620",
+          "duration_seconds": 1.566,
+          "timestamp": "2026-04-26T07:07:35.880091Z"
         }
       ]
     }
   ],
   "solved": true,
-  "total_duration_seconds": 9.269
+  "total_duration_seconds": 14.704
 }

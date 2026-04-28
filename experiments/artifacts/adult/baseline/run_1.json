@@ -1,8 +1,8 @@
 {
-  "run_id": "107f6b5c-4020-486b-bedd-aee33bbe0772",
+  "run_id": "8bc6a110-fdb9-45aa-a20f-4c4ea23af93c",
   "dataset_path": "D:\\Projects\\Personal\\AutoML\\data\\raw\\adult.csv",
   "problem": "Predict whether an individual earns more than $50K per year from census data.",
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "llm_config": {
     "provider": "groq",
     "model": "llama-3.3-70b-versatile",
@@ -41,11 +41,11 @@
             "hyperparameters": {}
           },
           {
-            "name": "LogisticRegression",
+            "name": "GradientBoostingClassifier",
             "hyperparameters": {}
           },
           {
-            "name": "XGBClassifier",
+            "name": "LogisticRegression",
             "hyperparameters": {}
           }
         ],
@@ -56,13 +56,13 @@
       },
       "results": {
         "RandomForestClassifier": {
-          "error": "Unknown scale method: None"
+          "error": "Cannot use mean strategy with non-numeric data:\ncould not convert string to float: 'Private'"
+        },
+        "GradientBoostingClassifier": {
+          "error": "Cannot use mean strategy with non-numeric data:\ncould not convert string to float: 'Private'"
         },
         "LogisticRegression": {
-          "error": "Unknown scale method: None"
-        },
-        "XGBClassifier": {
-          "error": "Unknown scale method: None"
+          "error": "Cannot use mean strategy with non-numeric data:\ncould not convert string to float: 'Private'"
         }
       },
       "evaluation": "execution_failed",
@@ -71,20 +71,20 @@
         {
           "agent_name": "BaselineAnalyzerAgent",
           "input_summary": "dataset=adult, iter=1",
-          "output_summary": "parse_success=True, models=['RandomForestClassifier', 'LogisticRegression', 'XGBClassifier']",
-          "duration_seconds": 3.595,
-          "timestamp": "2026-04-23T08:18:32.227607Z"
+          "output_summary": "parse_success=True, models=['RandomForestClassifier', 'GradientBoostingClassifier', 'LogisticRegression']",
+          "duration_seconds": 3.276,
+          "timestamp": "2026-04-25T16:56:17.962438Z"
         },
         {
           "agent_name": "ImplementationAgent",
-          "input_summary": "models=['RandomForestClassifier', 'LogisticRegression', 'XGBClassifier']",
-          "output_summary": "errors=['RandomForestClassifier: Unknown scale method: None', 'LogisticRegression: Unknown scale method: None', 'XGBClassifier: Unknown scale method: None']",
-          "duration_seconds": 0.945,
-          "timestamp": "2026-04-23T08:18:33.172434Z"
+          "input_summary": "models=['RandomForestClassifier', 'GradientBoostingClassifier', 'LogisticRegression']",
+          "output_summary": "errors=[\"RandomForestClassifier: Cannot use mean strategy with non-numeric data:\\ncould not convert string to float: 'Private'\", \"GradientBoostingClassifier: Cannot use mean strategy with non-numeric data:\\ncould not convert string to float: 'Private'\", \"LogisticRegression: Cannot use mean strategy with non-numeric data:\\ncould not convert string to float: 'Private'\"]",
+          "duration_seconds": 0.957,
+          "timestamp": "2026-04-25T16:56:18.919787Z"
         }
       ]
     }
   ],
   "solved": false,
-  "total_duration_seconds": 4.736
+  "total_duration_seconds": 4.423
 }

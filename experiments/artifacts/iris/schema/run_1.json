@@ -1,8 +1,8 @@
 {
-  "run_id": "82d70879-db8f-4ddd-b20f-e6531fe1150d",
+  "run_id": "099b028c-9db3-4cab-90cc-7910f4f86903",
   "dataset_path": "D:\\Projects\\Personal\\AutoML\\data\\raw\\iris.csv",
   "problem": "Predict the species of an iris flower from sepal and petal measurements.",
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "llm_config": {
     "provider": "groq",
     "model": "llama-3.3-70b-versatile",
@@ -69,10 +69,10 @@
           ]
         },
         "RandomForestClassifier": {
-          "mean_score": 0.9600000000000002,
-          "std_score": 0.038873012632301994,
+          "mean_score": 0.9533333333333334,
+          "std_score": 0.03399346342395189,
           "individual_scores": [
-            1.0,
+            0.9666666666666667,
             0.9666666666666667,
             0.9333333333333333,
             1.0,
@@ -98,33 +98,33 @@
           "agent_name": "AnalyzerAgent",
           "input_summary": "dataset=iris, iter=1",
           "output_summary": "models=['LogisticRegression', 'RandomForestClassifier', 'SVC']",
-          "duration_seconds": 1.738,
-          "timestamp": "2026-04-25T08:38:34.104874Z"
+          "duration_seconds": 2.798,
+          "timestamp": "2026-04-27T12:17:31.790258Z"
         },
         {
           "agent_name": "PlanValidatorAgent",
           "input_summary": "plan models=['LogisticRegression', 'RandomForestClassifier', 'SVC']",
           "output_summary": "passed=False, issues=[\"Rule6: target column 'class' appears in preprocessing step 'encode_categorical' — target is never a feature, remove it from the columns list.\"]",
-          "duration_seconds": 1.177,
-          "timestamp": "2026-04-25T08:38:35.281897Z"
+          "duration_seconds": 2.824,
+          "timestamp": "2026-04-27T12:17:34.614660Z"
         },
         {
           "agent_name": "ImplementationAgent",
           "input_summary": "models=['LogisticRegression', 'RandomForestClassifier', 'SVC']",
           "output_summary": "errors=[]",
-          "duration_seconds": 1.737,
-          "timestamp": "2026-04-25T08:38:37.018424Z"
+          "duration_seconds": 2.039,
+          "timestamp": "2026-04-27T12:17:36.654025Z"
         },
         {
           "agent_name": "CritiqueAgent",
           "input_summary": "results keys=['LogisticRegression', 'RandomForestClassifier', 'SVC']",
           "output_summary": "solved=True, score=0.9600",
-          "duration_seconds": 1.075,
-          "timestamp": "2026-04-25T08:38:38.092953Z"
+          "duration_seconds": 2.165,
+          "timestamp": "2026-04-27T12:17:38.818772Z"
         }
       ]
     }
   ],
   "solved": true,
-  "total_duration_seconds": 5.738
+  "total_duration_seconds": 9.834
 }

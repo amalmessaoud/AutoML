@@ -1,8 +1,8 @@
 {
-  "run_id": "a52e165c-fd6c-4c0e-9c17-355e72d9967a",
+  "run_id": "4a927fce-c518-4783-bcb0-c5bb0edfea38",
   "dataset_path": "D:\\Projects\\Personal\\AutoML\\data\\raw\\diabetes.csv",
   "problem": "Predict whether a patient has diabetes based on diagnostic measurements.",
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "llm_config": {
     "provider": "groq",
     "model": "llama-3.3-70b-versatile",
@@ -51,35 +51,66 @@
       },
       "results": {
         "RandomForestClassifier": {
-          "error": "Unknown scale method: None"
+          "mean_score": 0.7229925783640159,
+          "std_score": 0.01104302692133988,
+          "individual_scores": [
+            0.7275943396226415,
+            0.7395002658160553,
+            0.7182266009852216,
+            0.7237593324549847,
+            0.7058823529411764
+          ]
         },
         "LogisticRegression": {
-          "error": "Unknown scale method: None"
+          "mean_score": 0.7373837440595707,
+          "std_score": 0.011099177849927552,
+          "individual_scores": [
+            0.7397096838337642,
+            0.7520128824476651,
+            0.7458364591147787,
+            0.7236049779205138,
+            0.725754716981132
+          ]
         },
         "GradientBoostingClassifier": {
-          "error": "Unknown scale method: None"
+          "mean_score": 0.7338258736948875,
+          "std_score": 0.016325993538149463,
+          "individual_scores": [
+            0.7630769230769231,
+            0.7366492402403869,
+            0.7214924804873406,
+            0.7317697228144989,
+            0.7161410018552876
+          ]
         }
       },
-      "evaluation": "execution_failed",
-      "solved": false,
+      "evaluation": "",
+      "solved": true,
       "agent_calls": [
         {
           "agent_name": "BaselineAnalyzerAgent",
           "input_summary": "dataset=diabetes, iter=1",
           "output_summary": "parse_success=True, models=['RandomForestClassifier', 'LogisticRegression', 'GradientBoostingClassifier']",
-          "duration_seconds": 3.359,
-          "timestamp": "2026-04-23T08:14:37.838312Z"
+          "duration_seconds": 4.038,
+          "timestamp": "2026-04-26T21:19:34.270315Z"
         },
         {
           "agent_name": "ImplementationAgent",
           "input_summary": "models=['RandomForestClassifier', 'LogisticRegression', 'GradientBoostingClassifier']",
-          "output_summary": "errors=['RandomForestClassifier: Unknown scale method: None', 'LogisticRegression: Unknown scale method: None', 'GradientBoostingClassifier: Unknown scale method: None']",
-          "duration_seconds": 0.03,
-          "timestamp": "2026-04-23T08:14:37.868604Z"
+          "output_summary": "errors=[]",
+          "duration_seconds": 4.509,
+          "timestamp": "2026-04-26T21:19:38.782574Z"
+        },
+        {
+          "agent_name": "CritiqueAgent",
+          "input_summary": "results keys=['RandomForestClassifier', 'LogisticRegression', 'GradientBoostingClassifier']",
+          "output_summary": "solved=True, score=0.7374",
+          "duration_seconds": 3.561,
+          "timestamp": "2026-04-26T21:19:42.343182Z"
         }
       ]
     }
   ],
-  "solved": false,
-  "total_duration_seconds": 3.41
+  "solved": true,
+  "total_duration_seconds": 12.152
 }

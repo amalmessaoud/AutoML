@@ -1,0 +1,11 @@
+dataset,baseline,schema,variance_ratio,interpretation
+adult,,0.0005818248877454437,,equal / undefined
+bank_marketing,0.0055856746414377064,0.0,inf,schema more consistent
+breast_cancer,0.001343481745317018,0.002109549169846498,0.637,baseline more consistent
+car_evaluation,0.0,0.0066704383813959295,0.0,baseline more consistent
+diabetes,0.0,0.0,,equal / undefined
+german_credit,0.0013147152923732458,0.04272384700375191,0.031,baseline more consistent
+iris,6.037383539249264e-05,0.0,inf,schema more consistent
+jungle_chess,0.0022627723040553596,0.012841703169751273,0.176,baseline more consistent
+vehicle,0.01830346366128552,0.0,inf,schema more consistent
+wine,0.002317013638285278,0.003986674554061318,0.581,baseline more consistent

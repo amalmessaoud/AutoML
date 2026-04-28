@@ -1,8 +1,8 @@
 {
-  "run_id": "43895c25-2a29-47d2-8772-7ea37bf7eb14",
+  "run_id": "4ea721af-86a5-4f4c-ba91-3623e055c012",
   "dataset_path": "D:\\Projects\\Personal\\AutoML\\data\\raw\\jungle_chess.csv",
   "problem": "Predict the outcome of a Jungle Chess game position.",
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "llm_config": {
     "provider": "groq",
     "model": "llama-3.3-70b-versatile",
@@ -36,11 +36,11 @@
             "hyperparameters": {}
           },
           {
-            "name": "GradientBoostingClassifier",
+            "name": "XGBClassifier",
             "hyperparameters": {}
           },
           {
-            "name": "XGBClassifier",
+            "name": "GradientBoostingClassifier",
             "hyperparameters": {}
           }
         ],
@@ -51,35 +51,66 @@
       },
       "results": {
         "RandomForestClassifier": {
-          "error": "Unknown scale method: None"
-        },
-        "GradientBoostingClassifier": {
-          "error": "Unknown scale method: None"
+          "mean_score": 0.4006543276172603,
+          "std_score": 0.03470775878194813,
+          "individual_scores": [
+            0.43126923359903846,
+            0.44529093612753745,
+            0.3849312481592808,
+            0.3940678018997909,
+            0.34771241830065364
+          ]
         },
         "XGBClassifier": {
-          "error": "Unknown scale method: None"
+          "mean_score": 0.3900559180077342,
+          "std_score": 0.019691127650548364,
+          "individual_scores": [
+            0.4146205334407582,
+            0.39875247234984634,
+            0.40271865539041113,
+            0.36236085711909355,
+            0.3718270717385617
+          ]
+        },
+        "GradientBoostingClassifier": {
+          "mean_score": 0.3600073631509509,
+          "std_score": 0.014046605084827982,
+          "individual_scores": [
+            0.36144920229937383,
+            0.3584529505582137,
+            0.3739348634102835,
+            0.37170956267001465,
+            0.3344902368168688
+          ]
         }
       },
-      "evaluation": "execution_failed",
-      "solved": false,
+      "evaluation": "",
+      "solved": true,
       "agent_calls": [
         {
           "agent_name": "BaselineAnalyzerAgent",
           "input_summary": "dataset=jungle_chess, iter=1",
-          "output_summary": "parse_success=True, models=['RandomForestClassifier', 'GradientBoostingClassifier', 'XGBClassifier']",
-          "duration_seconds": 2.49,
-          "timestamp": "2026-04-25T07:55:56.182668Z"
+          "output_summary": "parse_success=True, models=['RandomForestClassifier', 'XGBClassifier', 'GradientBoostingClassifier']",
+          "duration_seconds": 2.415,
+          "timestamp": "2026-04-27T19:21:32.853866Z"
         },
         {
           "agent_name": "ImplementationAgent",
-          "input_summary": "models=['RandomForestClassifier', 'GradientBoostingClassifier', 'XGBClassifier']",
-          "output_summary": "errors=['RandomForestClassifier: Unknown scale method: None', 'GradientBoostingClassifier: Unknown scale method: None', 'XGBClassifier: Unknown scale method: None']",
-          "duration_seconds": 0.027,
-          "timestamp": "2026-04-25T07:55:56.209675Z"
+          "input_summary": "models=['RandomForestClassifier', 'XGBClassifier', 'GradientBoostingClassifier']",
+          "output_summary": "errors=[]",
+          "duration_seconds": 57.098,
+          "timestamp": "2026-04-27T19:22:29.953970Z"
+        },
+        {
+          "agent_name": "CritiqueAgent",
+          "input_summary": "results keys=['RandomForestClassifier', 'XGBClassifier', 'GradientBoostingClassifier']",
+          "output_summary": "solved=True, score=0.4007",
+          "duration_seconds": 3.624,
+          "timestamp": "2026-04-27T19:22:33.577861Z"
         }
       ]
     }
   ],
-  "solved": false,
-  "total_duration_seconds": 2.537
+  "solved": true,
+  "total_duration_seconds": 63.166
 }

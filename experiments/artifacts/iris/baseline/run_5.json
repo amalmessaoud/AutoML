@@ -1,8 +1,8 @@
 {
-  "run_id": "3d6d0b7f-0827-4ede-8ab7-d95463ad1603",
+  "run_id": "8883c435-674a-4023-9165-987e30b4fe79",
   "dataset_path": "D:\\Projects\\Personal\\AutoML\\data\\raw\\iris.csv",
   "problem": "Predict the species of an iris flower from sepal and petal measurements.",
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "llm_config": {
     "provider": "groq",
     "model": "llama-3.3-70b-versatile",
@@ -40,7 +40,7 @@
             "hyperparameters": {}
           },
           {
-            "name": "GradientBoostingClassifier",
+            "name": "XGBClassifier",
             "hyperparameters": {}
           }
         ],
@@ -72,13 +72,13 @@
             0.899749373433584
           ]
         },
-        "GradientBoostingClassifier": {
-          "mean_score": 0.9531151110098477,
-          "std_score": 0.034138786907427096,
+        "XGBClassifier": {
+          "mean_score": 0.9388998342558714,
+          "std_score": 0.03393820985192302,
           "individual_scores": [
-            1.0,
             0.9665831244778613,
-            0.9326599326599326,
+            0.9665831244778613,
+            0.8950004244121891,
             0.9665831244778613,
             0.899749373433584
           ]
@@ -90,27 +90,27 @@
         {
           "agent_name": "BaselineAnalyzerAgent",
           "input_summary": "dataset=iris, iter=1",
-          "output_summary": "parse_success=True, models=['RandomForestClassifier', 'LogisticRegression', 'GradientBoostingClassifier']",
-          "duration_seconds": 2.846,
-          "timestamp": "2026-04-22T10:35:50.962518Z"
+          "output_summary": "parse_success=True, models=['RandomForestClassifier', 'LogisticRegression', 'XGBClassifier']",
+          "duration_seconds": 2.028,
+          "timestamp": "2026-04-27T12:20:24.561557Z"
         },
         {
           "agent_name": "ImplementationAgent",
-          "input_summary": "models=['RandomForestClassifier', 'LogisticRegression', 'GradientBoostingClassifier']",
+          "input_summary": "models=['RandomForestClassifier', 'LogisticRegression', 'XGBClassifier']",
           "output_summary": "errors=[]",
-          "duration_seconds": 2.233,
-          "timestamp": "2026-04-22T10:35:53.195504Z"
+          "duration_seconds": 3.19,
+          "timestamp": "2026-04-27T12:20:27.751429Z"
         },
         {
           "agent_name": "CritiqueAgent",
-          "input_summary": "results keys=['RandomForestClassifier', 'LogisticRegression', 'GradientBoostingClassifier']",
+          "input_summary": "results keys=['RandomForestClassifier', 'LogisticRegression', 'XGBClassifier']",
           "output_summary": "solved=True, score=0.9598",
-          "duration_seconds": 1.208,
-          "timestamp": "2026-04-22T10:35:54.403894Z"
+          "duration_seconds": 1.294,
+          "timestamp": "2026-04-27T12:20:29.045511Z"
         }
       ]
     }
   ],
   "solved": true,
-  "total_duration_seconds": 6.293
+  "total_duration_seconds": 6.522
 }

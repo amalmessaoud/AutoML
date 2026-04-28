@@ -1,8 +1,8 @@
 {
-  "run_id": "f033c377-a8da-4a1a-8f66-fe44157840c4",
+  "run_id": "f484b8e8-77de-4f7f-9a15-7b793d615cd8",
   "dataset_path": "D:\\Projects\\Personal\\AutoML\\data\\raw\\iris.csv",
   "problem": "Predict the species of an iris flower from sepal and petal measurements.",
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "llm_config": {
     "provider": "groq",
     "model": "llama-3.3-70b-versatile",
@@ -36,11 +36,11 @@
             "hyperparameters": {}
           },
           {
-            "name": "LogisticRegression",
+            "name": "XGBClassifier",
             "hyperparameters": {}
           },
           {
-            "name": "XGBClassifier",
+            "name": "SVC",
             "hyperparameters": {}
           }
         ],
@@ -51,23 +51,12 @@
       },
       "results": {
         "RandomForestClassifier": {
-          "mean_score": 0.9531151110098477,
-          "std_score": 0.034138786907427096,
+          "mean_score": 0.9597984861142755,
+          "std_score": 0.03904036826789792,
           "individual_scores": [
-            0.9665831244778613,
+            1.0,
             0.9665831244778613,
             0.9326599326599326,
-            1.0,
-            0.899749373433584
-          ]
-        },
-        "LogisticRegression": {
-          "mean_score": 0.953216374269006,
-          "std_score": 0.0453288553592332,
-          "individual_scores": [
-            1.0,
-            0.9665831244778613,
-            0.899749373433584,
             1.0,
             0.899749373433584
           ]
@@ -82,6 +71,17 @@
             0.9665831244778613,
             0.899749373433584
           ]
+        },
+        "SVC": {
+          "mean_score": 0.9599331662489557,
+          "std_score": 0.038947565538545434,
+          "individual_scores": [
+            1.0,
+            0.9665831244778613,
+            0.899749373433584,
+            1.0,
+            0.9333333333333332
+          ]
         }
       },
       "evaluation": "",
@@ -90,27 +90,27 @@
         {
           "agent_name": "BaselineAnalyzerAgent",
           "input_summary": "dataset=iris, iter=1",
-          "output_summary": "parse_success=True, models=['RandomForestClassifier', 'LogisticRegression', 'XGBClassifier']",
-          "duration_seconds": 4.786,
-          "timestamp": "2026-04-22T10:35:38.295812Z"
+          "output_summary": "parse_success=True, models=['RandomForestClassifier', 'XGBClassifier', 'SVC']",
+          "duration_seconds": 1.932,
+          "timestamp": "2026-04-27T12:20:10.077891Z"
         },
         {
           "agent_name": "ImplementationAgent",
-          "input_summary": "models=['RandomForestClassifier', 'LogisticRegression', 'XGBClassifier']",
+          "input_summary": "models=['RandomForestClassifier', 'XGBClassifier', 'SVC']",
           "output_summary": "errors=[]",
-          "duration_seconds": 1.144,
-          "timestamp": "2026-04-22T10:35:39.439495Z"
+          "duration_seconds": 2.574,
+          "timestamp": "2026-04-27T12:20:12.651475Z"
         },
         {
           "agent_name": "CritiqueAgent",
-          "input_summary": "results keys=['RandomForestClassifier', 'LogisticRegression', 'XGBClassifier']",
-          "output_summary": "solved=True, score=0.9532",
-          "duration_seconds": 1.606,
-          "timestamp": "2026-04-22T10:35:41.045980Z"
+          "input_summary": "results keys=['RandomForestClassifier', 'XGBClassifier', 'SVC']",
+          "output_summary": "solved=True, score=0.9599",
+          "duration_seconds": 1.745,
+          "timestamp": "2026-04-27T12:20:14.396670Z"
         }
       ]
     }
   ],
   "solved": true,
-  "total_duration_seconds": 7.538
+  "total_duration_seconds": 6.262
 }

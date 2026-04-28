@@ -37,7 +37,6 @@ MODEL_MAP = {
     'RandomForestClassifier': RandomForestClassifier,
     'XGBClassifier': XGBClassifier,
     'LGBMClassifier': LGBMClassifier,
-    'CatBoostClassifier': CatBoostClassifier,
     'SVC': SVC,
     'KNeighborsClassifier': KNeighborsClassifier,
     'GradientBoostingClassifier': GradientBoostingClassifier,
@@ -87,57 +86,128 @@ def _build_transformer_specs(
 ) -> list:
     """
     Build the transformers list for ColumnTransformer from plan steps.
-    Extracted as a pure function so it can be called fresh per model.
+
+    Key invariant: each column appears in exactly ONE transformer slot.
+    When a column needs both imputation and encoding (common for categoricals),
+    we chain them into a Pipeline so ColumnTransformer sees one entry per column group.
     """
-    transformers = []
+    # Collect instructions per operation type
+    impute_specs: dict[str, list[str]] = {}   # strategy -> cols
+    encode_spec: tuple[str, list[str]] | None = None   # (method, cols)
+    scale_spec: tuple[str, list[str]] | None = None    # (method, cols)
+    drop_cols: list[str] = []
+
     for step in plan_steps:
         if step.operation == 'handle_imbalance':
             continue
 
         elif step.operation == 'impute_missing':
-            impute_cols = step.columns if step.columns else list(X.columns)
-            transformers.append((
-                f'impute_{step.method}',
-                SimpleImputer(strategy=step.method),
-                impute_cols,
-            ))
+            cols = step.columns if step.columns else list(X.columns)
+            strategy = step.method or 'mean'
+            impute_specs.setdefault(strategy, []).extend(cols)
 
         elif step.operation == 'encode_categorical':
-            if step.method == 'one_hot':
-                transformer = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
-            elif step.method == 'ordinal':
-                transformer = OrdinalEncoder(
-                    handle_unknown='use_encoded_value', unknown_value=-1
-                )
-            else:
-                raise ValueError(f'Unknown encode method: {step.method}')
-            encode_cols = (
+            cols = (
                 step.columns if step.columns
                 else list(X.select_dtypes(include='object').columns)
             )
-            if encode_cols:
-                transformers.append(('encode', transformer, encode_cols))
+            encode_spec = (step.method or 'one_hot', cols)
 
         elif step.operation == 'scale_numeric':
-            if step.method == 'standard':
-                transformer = StandardScaler()
-            elif step.method == 'minmax':
-                transformer = MinMaxScaler()
-            else:
-                raise ValueError(f'Unknown scale method: {step.method}')
-            scale_cols = (
+            cols = (
                 step.columns if step.columns
                 else list(X.select_dtypes(include='number').columns)
             )
-            if scale_cols:
-                transformers.append(('scale', transformer, scale_cols))
+            scale_spec = (step.method or 'standard', cols)
 
         elif step.operation == 'drop_columns':
-            if step.columns:
-                transformers.append(('drop', 'drop', step.columns))
+            drop_cols.extend(step.columns)
+
+    transformers = []
+    all_handled: set[str] = set(drop_cols)
+
+    # --- Categorical columns: impute → encode as a sub-pipeline ---
+    if encode_spec is not None:
+        enc_method, enc_cols = encode_spec
+        enc_cols = [c for c in enc_cols if c in X.columns]
+
+        if enc_cols:
+            # Find impute strategy for these cols (most_frequent is correct for categoricals)
+            cat_impute_strategy = None
+            for strategy, cols in impute_specs.items():
+                if any(c in enc_cols for c in cols):
+                    cat_impute_strategy = strategy
+                    break
+
+            if enc_method == 'one_hot':
+                encoder = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
+            else:
+                encoder = OrdinalEncoder(
+                    handle_unknown='use_encoded_value', unknown_value=-1
+                )
+
+            if cat_impute_strategy:
+                cat_pipeline = Pipeline([
+                    ('impute', SimpleImputer(strategy=cat_impute_strategy)),
+                    ('encode', encoder),
+                ])
+            else:
+                cat_pipeline = Pipeline([('encode', encoder)])
+
+            transformers.append(('categorical', cat_pipeline, enc_cols))
+            all_handled.update(enc_cols)
+
+    # --- Numeric columns: impute → scale as a sub-pipeline ---
+    if scale_spec is not None:
+        scale_method, scale_cols = scale_spec
+        scale_cols = [c for c in scale_cols if c in X.columns and c not in all_handled]
+
+        if scale_cols:
+            num_impute_strategy = None
+            for strategy, cols in impute_specs.items():
+                if any(c in scale_cols for c in cols):
+                    num_impute_strategy = strategy
+                    break
+
+            scaler = StandardScaler() if scale_method == 'standard' else MinMaxScaler()
+
+            if num_impute_strategy:
+                num_pipeline = Pipeline([
+                    ('impute', SimpleImputer(strategy=num_impute_strategy)),
+                    ('scale', scaler),
+                ])
+            else:
+                num_pipeline = Pipeline([('scale', scaler)])
+
+            transformers.append(('numeric', num_pipeline, scale_cols))
+            all_handled.update(scale_cols)
+
+    # --- Impute-only columns (numeric, no scale step) ---
+    for strategy, cols in impute_specs.items():
+        impute_only = [c for c in cols if c in X.columns and c not in all_handled]
+        if impute_only:
+            transformers.append((
+                f'impute_only_{strategy}',
+                SimpleImputer(strategy=strategy),
+                impute_only,
+            ))
+            all_handled.update(impute_only)
+
+    # --- Drop explicitly requested columns ---
+    if drop_cols:
+        valid_drop = [c for c in drop_cols if c in X.columns]
+        if valid_drop:
+            transformers.append(('drop_explicit', 'drop', valid_drop))
+
+    # --- Safety net: drop any remaining object columns not handled ---
+    unhandled_obj = [
+        c for c in X.select_dtypes(include='object').columns
+        if c not in all_handled
+    ]
+    if unhandled_obj:
+        transformers.append(('drop_unhandled_strings', 'drop', unhandled_obj))
 
     return transformers
-
 
 def execute_plan(
     plan: AutoMLPlan,
